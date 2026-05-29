@@ -175,6 +175,7 @@
 <div class="app-container">
   <h2 class="sr-only">Clara's Hub. 일정과 할 일을 통합 관리하는 플래너 앱.</h2>
 
+<button id="add-event-btn-nav" title="일정 추가" style="margin-left: auto; padding: 6px 12px;"><i class="ti ti-plus" aria-hidden="true"></i></button>  
   <nav style="display: flex; gap: 4px; margin-bottom: 1.25rem; border-bottom: 0.5px solid var(--color-border-tertiary); flex-wrap: wrap;">
     <button class="nav-tab active" data-view="month"><i class="ti ti-calendar-month" aria-hidden="true"></i> 이번 달</button>
     <button class="nav-tab" data-view="week"><i class="ti ti-calendar-week" aria-hidden="true"></i> 이번 주</button>
@@ -188,7 +189,6 @@
       <span id="month-label" style="font-size: 14px; font-weight: 500;"></span>
       <button id="next-month" style="padding: 4px 10px;"><i class="ti ti-chevron-right"></i></button>
     </div>
-    <button id="add-event-btn-month" style="width: 100%; margin-bottom: 1rem;"><i class="ti ti-plus" aria-hidden="true"></i> 일정 추가</button>
     <div id="month-weekdays" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-bottom: 4px;">
       <div class="wd">월</div><div class="wd">화</div><div class="wd">수</div><div class="wd">목</div><div class="wd">금</div><div class="wd sat">토</div><div class="wd sun">일</div>
     </div>
@@ -205,7 +205,6 @@
       <span id="week-label" style="font-size: 14px; font-weight: 500;"></span>
       <button id="next-week" style="padding: 4px 10px;"><i class="ti ti-chevron-right"></i></button>
     </div>
-    <button id="add-event-btn" style="width: 100%; margin-bottom: 1rem;"><i class="ti ti-plus" aria-hidden="true"></i> 일정 추가</button>
     <div id="week-days" style="display: flex; flex-direction: column; gap: 8px;"></div>
   </div>
 
@@ -602,7 +601,7 @@ const storage = {
     if (dayEvents.length === 0) {
       const empty = document.createElement('div');
       empty.style.cssText = 'font-size: 13px; color: var(--color-text-tertiary); padding: 4px 0;';
-      empty.textContent = '일정 없음. 아래 버튼으로 추가하세요.';
+      empty.textContent = '일정 없음.';
       list.appendChild(empty);
     } else {
       dayEvents.forEach(ev => {
@@ -615,17 +614,15 @@ const storage = {
       });
     }
 
-    const addBtn = document.createElement('button');
-    addBtn.style.cssText = 'margin-top: 8px; font-size: 13px;';
-    addBtn.innerHTML = `<i class="ti ti-plus"></i> 이 날짜에 일정 추가`;
-    addBtn.onclick = () => openEventModal(null, fmtDate(d));
-    list.appendChild(addBtn);
     detail.style.display = 'block';
   }
 
   document.getElementById('prev-month').onclick = () => { monthOffset--; selectedMonthDate = null; renderMonth(); };
   document.getElementById('next-month').onclick = () => { monthOffset++; selectedMonthDate = null; renderMonth(); };
-  document.getElementById('add-event-btn-month').onclick = () => openEventModal(null, selectedMonthDate || fmtDate(new Date()));
+  document.getElementById('add-event-btn-nav').onclick = () => {
+    // 월별 뷰에서 날짜를 선택한 상태면 그 날짜로, 아니면 오늘 날짜로 일정 추가
+    openEventModal(null, selectedMonthDate || fmtDate(new Date()));
+  };
 
   function renderWeek() {
     const today = new Date(); today.setHours(0,0,0,0);
@@ -669,7 +666,6 @@ const storage = {
 
   document.getElementById('prev-week').onclick = () => { weekOffset--; renderWeek(); };
   document.getElementById('next-week').onclick = () => { weekOffset++; renderWeek(); };
-  document.getElementById('add-event-btn').onclick = (e) => { e.stopPropagation(); openEventModal(); };
 
   function populateCatSelect(selectEl, selectedId) {
     selectEl.innerHTML = '';
