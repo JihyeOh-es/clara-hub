@@ -94,34 +94,52 @@
     }
 
     /* ==================== App Styles ==================== */
-    .nav-tab { background: transparent; border: none; padding: 8px 14px; font-size: 14px; color: var(--color-text-secondary); cursor: pointer; border-bottom: 2px solid transparent; border-radius: 0; margin-bottom: -0.5px; }
-    .nav-tab.active { color: var(--color-text-primary); border-bottom-color: var(--color-text-primary); font-weight: 500; }
+   .nav-tab {
+      padding: 6px 12px;
+      font-size: 13px;
+      background: var(--color-background-primary);
+      color: var(--color-text-secondary);
+      border: 0.5px solid var(--color-border-tertiary);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.1s, color 0.1s;
+    }
+    .nav-tab:hover {
+      background: var(--color-background-secondary);
+    }
+    .nav-tab.active {
+      background: var(--color-text-secondary);
+      color: var(--color-background-primary);
+      border-color: var(--color-text-secondary);
+      font-weight: 500;
+    }
     .add-fab {
-      width: 36px;
-      height: 36px;
+      width: 28px;
+      height: 28px;
       padding: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, #378ADD, #378ADD);
+      background: #2A8AF6;
       color: white;
       border: none;
-      border-radius: 50%;
+      border-radius: 6px;
       cursor: pointer;
-      font-size: 18px;
-      box-shadow: 0 2px 6px rgba(127, 119, 221, 0.35);
-      transition: transform 0.1s, box-shadow 0.1s;
+      font-size: 16px;
+      box-shadow: 0 2px 4px rgba(42, 138, 246, 0.35);
+      transition: transform 0.1s, box-shadow 0.1s, background 0.1s;
       flex-shrink: 0;
     }
     .add-fab:hover {
       transform: translateY(-1px);
-      box-shadow: 0 4px 10px rgba(127, 119, 221, 0.45);
-      background: linear-gradient(135deg, #7F77DD, #D4537E);
+      box-shadow: 0 3px 6px rgba(42, 138, 246, 0.45);
+      background: #1A7AE6;
     }
     .add-fab:active {
       transform: translateY(0);
-      box-shadow: 0 1px 3px rgba(127, 119, 221, 0.4);
+      box-shadow: 0 1px 2px rgba(42, 138, 246, 0.4);
     }
+   
     .wd { text-align: center; font-size: 11px; color: var(--color-text-tertiary); padding: 4px 0; font-weight: 500; }
     .wd.sun { color: #D93B3B; } .wd.sat { color: #378ADD; }
     .month-cell { min-height: 70px; border: 0.5px solid var(--color-border-tertiary); border-radius: 6px; padding: 4px 5px; background: var(--color-background-primary); cursor: pointer; display: flex; flex-direction: column; gap: 2px; overflow: hidden; }
@@ -201,7 +219,7 @@
 <div class="app-container">
   <h2 class="sr-only">Clara's Hub. 일정과 할 일을 통합 관리하는 플래너 앱.</h2>
 
-  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 1.25rem; border-bottom: 0.5px solid var(--color-border-tertiary);">
+  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 1.25rem;">
     <nav style="display: flex; gap: 4px; flex: 1; flex-wrap: wrap;">
     <button class="nav-tab active" data-view="month"><i class="ti ti-calendar-month" aria-hidden="true"></i> 이번 달</button>
     <button class="nav-tab" data-view="week"><i class="ti ti-calendar-week" aria-hidden="true"></i> 이번 주</button>
