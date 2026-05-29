@@ -326,7 +326,15 @@
       </div>
     </div>
   </div>
-
+<div id="confirm-modal-overlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 200; align-items: center; justify-content: center; padding: 1rem;">
+    <div style="background: var(--color-background-primary); border-radius: var(--border-radius-lg); padding: 1.25rem; width: 100%; max-width: 360px; border: 0.5px solid var(--color-border-tertiary);">
+      <p id="confirm-message" style="margin: 0 0 1.25rem; font-size: 14px; line-height: 1.5; color: var(--color-text-primary);"></p>
+      <div style="display: flex; gap: 8px; justify-content: flex-end;">
+        <button id="confirm-cancel">취소</button>
+        <button id="confirm-ok" style="background: var(--color-text-danger); color: white; border-color: var(--color-text-danger);">삭제</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -358,7 +366,28 @@ const storage = {
   let events = [], todos = [], categories = [];
   let weekOffset = 0, monthOffset = 0, editingEventId = null, editingTodoId = null, todoFilter = 'all';
   let selectedMonthDate = null;
+// 커스텀 확인 모달 - 브라우저 기본 confirm() 대신 사용
+  function customConfirm(message) {
+    return new Promise((resolve) => {
+      document.getElementById('confirm-message').textContent = message;
+      document.getElementById('confirm-modal-overlay').style.display = 'flex';
 
+      const ok = document.getElementById('confirm-ok');
+      const cancel = document.getElementById('confirm-cancel');
+      const overlay = document.getElementById('confirm-modal-overlay');
+
+      const cleanup = () => {
+        overlay.style.display = 'none';
+        ok.onclick = null;
+        cancel.onclick = null;
+        overlay.onclick = null;
+      };
+
+      ok.onclick = () => { cleanup(); resolve(true); };
+      cancel.onclick = () => { cleanup(); resolve(false); };
+      overlay.onclick = (e) => { if (e.target === overlay) { cleanup(); resolve(false); } };
+    });
+  }
   function loadAll() {
     try { const r = storage.get(STORE_EVENTS); events = r ? JSON.parse(r.value) : []; } catch(e) { events = []; }
     try { const r = storage.get(STORE_TODOS); todos = r ? JSON.parse(r.value) : []; } catch(e) { todos = []; }
@@ -942,9 +971,10 @@ const storage = {
       const del = document.createElement('button');
       del.style.cssText = 'border:none; background:transparent; color: var(--color-text-tertiary); cursor:pointer; padding:4px;';
       del.innerHTML = '<i class="ti ti-trash"></i>';
-      del.onclick = () => {
+      del.onclick = async () => {
         if (categories.length <= 1) return;
-        if (!confirm(`'${cat.name}' 카테고리를 삭제하시겠어요? 이 카테고리의 일정/할 일은 다른 카테고리로 이동됩니다.`)) return;
+        const confirmed = await customConfirm(`'${cat.name}' 카테고리를 삭제하시겠어요?\n\n이 카테고리의 일정과 할 일은 다른 카테고리로 자동 이동됩니다.`);
+        if (!confirmed) return;
         const fallbackId = categories.find(c => c.id !== cat.id).id;
         events.forEach(e => { if (e.categoryId === cat.id) e.categoryId = fallbackId; });
         todos.forEach(t => { if (t.categoryId === cat.id) t.categoryId = fallbackId; });
@@ -959,7 +989,9 @@ const storage = {
       list.appendChild(row);
     });
   }
-
+document.getElementById('new-cat-name').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('add-cat-btn').click();
+  });
   document.getElementById('add-cat-btn').onclick = () => {
     const name = document.getElementById('new-cat-name').value.trim();
     if (!name) return;
