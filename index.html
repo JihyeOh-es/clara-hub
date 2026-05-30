@@ -562,9 +562,9 @@ const storage = {
     const periodBtnGroup = document.createElement('div');
     periodBtnGroup.style.cssText = 'display:flex; gap:2px;';
     const amBtn = document.createElement('button');
-    amBtn.type = 'button'; amBtn.className = 'tp-period-btn'; amBtn.textContent = '오전';
+    amBtn.type = 'button'; amBtn.className = 'tp-period-btn'; amBtn.textContent = 'AM';
     const pmBtn = document.createElement('button');
-    pmBtn.type = 'button'; pmBtn.className = 'tp-period-btn'; pmBtn.textContent = '오후';
+    pmBtn.type = 'button'; pmBtn.className = 'tp-period-btn'; pmBtn.textContent = 'PM';
     amBtn.onclick = (e) => { e.stopPropagation(); period = '오전'; syncDirectInputs(); refreshOptions(); };
     pmBtn.onclick = (e) => { e.stopPropagation(); period = '오후'; syncDirectInputs(); refreshOptions(); };
     periodBtnGroup.appendChild(amBtn); periodBtnGroup.appendChild(pmBtn);
@@ -786,7 +786,8 @@ const storage = {
         const cat = getCat(ev.categoryId);
         const item = document.createElement('div');
         item.className = 'detail-event';
-        item.innerHTML = `<span class="event-dot" style="background:${cat.color};"></span><span class="event-time">${ev.start ? fmtTimeKR(ev.start) : '종일'}</span><span class="event-title">${ev.title}</span>` + (ev.place ? `<span class="event-place"><i class="ti ti-map-pin" style="font-size:11px;"></i> ${ev.place}</span>` : '');
+        const catTagHtml = `<span class="todo-cat-tag" style="background:${hexToRgba(cat.color, 0.15)}; color:${cat.color};">${cat.name}</span>`;
+        item.innerHTML = `<span class="event-dot" style="background:${cat.color};"></span><span class="event-time">${ev.start ? fmtTimeKR(ev.start) : '종일'}</span><span class="event-title">${ev.title}</span>` + (ev.place ? `<span class="event-place"><i class="ti ti-map-pin" style="font-size:11px;"></i> ${ev.place}</span>` : '') + catTagHtml;
         item.onclick = () => openEventModal(ev);
         list.appendChild(item);
       });
@@ -833,7 +834,8 @@ const storage = {
           const item = document.createElement('div');
           item.className = 'event-item';
           item.onclick = (e) => { e.stopPropagation(); openEventModal(ev); };
-          item.innerHTML = `<span class="event-dot" style="background:${cat.color};"></span><span class="event-time">${ev.start ? fmtTimeKR(ev.start) : '종일'}</span><span class="event-title">${ev.title}</span>` + (ev.place ? `<span class="event-place"><i class="ti ti-map-pin" style="font-size:11px;"></i> ${ev.place}</span>` : '');
+          const catTagHtml = `<span class="todo-cat-tag" style="background:${hexToRgba(cat.color, 0.15)}; color:${cat.color};">${cat.name}</span>`;
+          item.innerHTML = `<span class="event-dot" style="background:${cat.color};"></span><span class="event-time">${ev.start ? fmtTimeKR(ev.start) : '종일'}</span><span class="event-title">${ev.title}</span>` + (ev.place ? `<span class="event-place"><i class="ti ti-map-pin" style="font-size:11px;"></i> ${ev.place}</span>` : '') + catTagHtml;
           block.appendChild(item);
         });
       }
