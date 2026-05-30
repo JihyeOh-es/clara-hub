@@ -1,7 +1,7 @@
 // Clara's Hub - Service Worker
 // 오프라인에서도 앱이 열리도록 핵심 파일들을 캐싱합니다.
 
-const CACHE_NAME = 'claras-hub-v2';
+const CACHE_NAME = 'claras-hub-v3';
 const ASSETS = [
   './',
   './index.html',
