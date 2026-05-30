@@ -24,3 +24,6 @@ GitHub Pages로 배포되어 있습니다.
 ## 기술
 
 순수 HTML / CSS / JavaScript. 빌드 도구 없음.
+
+
+##메모
