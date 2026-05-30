@@ -150,21 +150,36 @@
     .month-cell.today .month-cell-date { color: var(--color-text-info); font-weight: 600; }
     .month-cell-date.sun { color: #D93B3B; } .month-cell-date.sat { color: #378ADD; }
     .month-event { font-size: 10px; padding: 1px 4px; border-radius: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.3; }
+    .month-todo { font-size: 10px; padding: 1px 4px; border-radius: 3px; display: flex; align-items: center; gap: 3px; cursor: pointer; overflow: hidden; flex-wrap: nowrap; white-space: nowrap; line-height: 1.3; }
+    .month-todo.done { opacity: 0.5; text-decoration: line-through; }
+    .month-todo i.ti { font-size: 10px; line-height: 1; flex-shrink: 0; }
+    .month-todo span { font-size: 10px; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; min-width: 0; white-space: nowrap; }
     .month-event-more { font-size: 10px; color: var(--color-text-tertiary); padding: 0 4px; }
-    .day-block { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 10px 12px; background: var(--color-background-primary); cursor: pointer; }
+
+    /* Week (Kanban) */
+    .week-board { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: thin; }
+    .week-board::-webkit-scrollbar { height: 6px; }
+    .week-board::-webkit-scrollbar-thumb { background: var(--color-border-tertiary); border-radius: 3px; }
+    .day-block { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 10px 12px; background: var(--color-background-primary); cursor: pointer; min-width: 160px; flex-shrink: 0; display: flex; flex-direction: column; gap: 4px; }
     .day-block.today { border-color: var(--color-border-info); background: var(--color-background-info); }
     .day-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 6px; }
     .day-name { font-size: 13px; font-weight: 500; }
     .day-date { font-size: 12px; color: var(--color-text-tertiary); }
-    .event-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; font-size: 13px; border-radius: 6px; cursor: pointer; margin-top: 4px; }
+    .event-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; font-size: 13px; border-radius: 6px; cursor: pointer; }
     .event-item:hover { background: var(--color-background-secondary); }
     .event-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
     .event-time { font-variant-numeric: tabular-nums; color: var(--color-text-secondary); font-size: 12px; min-width: 50px; }
     .event-title { flex: 1; }
     .event-place { font-size: 11px; color: var(--color-text-tertiary); }
     .day-empty { font-size: 12px; color: var(--color-text-tertiary); padding: 2px 0; }
+    .week-todo { display: flex; align-items: center; gap: 6px; padding: 4px 6px; font-size: 12px; border-radius: 4px; cursor: pointer; }
+    .week-todo.done { opacity: 0.5; text-decoration: line-through; }
+    .week-todo i.ti { font-size: 12px; flex-shrink: 0; }
+    .week-todo span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; flex: 1; }
+
     .detail-event { display: flex; align-items: center; gap: 8px; padding: 8px 10px; font-size: 13px; border: 0.5px solid var(--color-border-tertiary); border-radius: 6px; cursor: pointer; background: var(--color-background-primary); }
     .detail-event:hover { background: var(--color-background-secondary); }
+
     .todo-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); cursor: pointer; }
     .todo-item.done .todo-text { text-decoration: line-through; color: var(--color-text-tertiary); }
     .todo-item.overdue { border-color: var(--color-border-danger); background: var(--color-background-danger); }
@@ -207,9 +222,14 @@
     .tp-actions { display: flex; flex-direction: column; gap: 4px; margin-left: 4px; padding-left: 8px; border-left: 0.5px solid var(--color-border-tertiary); }
     .tp-actions button { font-size: 12px; padding: 6px 10px; display: flex; align-items: center; justify-content: center; }
 
+    /* Modal overflow override */
+    #modal-overlay > div { overflow-y: visible !important; overflow-x: visible !important; }
+    #modal-overlay .tp-col { overflow-y: auto !important; }
+
     @media (max-width: 480px) {
       .month-cell { min-height: 56px; padding: 3px 3px; }
       .month-event { font-size: 9px; }
+      .month-todo, .month-todo span, .month-todo i.ti { font-size: 9px; }
       .nav-tab { padding: 8px 10px; font-size: 13px; }
     }
   </style>
@@ -251,7 +271,7 @@
       <span id="week-label" style="font-size: 14px; font-weight: 500;"></span>
       <button id="next-week" style="padding: 4px 10px;"><i class="ti ti-chevron-right"></i></button>
     </div>
-    <div id="week-days" style="display: flex; flex-direction: column; gap: 8px;"></div>
+    <div id="week-days" class="week-board"></div>
   </div>
 
   <div id="view-todos" class="view" style="display: none;">
@@ -426,19 +446,16 @@ const storage = {
     const optionsEl = document.getElementById('cat-delete-options');
     const targetSelect = document.getElementById('cat-delete-target');
 
-    // 이 카테고리에 속한 항목 수 계산
     const eventCount = events.filter(e => e.categoryId === cat.id).length;
     const todoCount = todos.filter(t => t.categoryId === cat.id).length;
     const total = eventCount + todoCount;
 
     nameEl.textContent = cat.name;
 
-    // 항목이 있으면 옵션 보여주기, 없으면 숨기기
     if (total > 0) {
       countEl.textContent = `이 카테고리에 일정 ${eventCount}개, 할 일 ${todoCount}개가 있어요.`;
       optionsEl.style.display = 'flex';
 
-      // 이동할 카테고리 드롭다운 채우기 (자기 자신 제외)
       targetSelect.innerHTML = '';
       categories.filter(c => c.id !== cat.id).forEach(c => {
         const opt = document.createElement('option');
@@ -446,7 +463,6 @@ const storage = {
         opt.textContent = c.name;
         targetSelect.appendChild(opt);
       });
-      // 기본값은 '이동' 라디오 선택
       document.querySelector('input[name="cat-delete-action"][value="move"]').checked = true;
     } else {
       countEl.textContent = '이 카테고리에는 항목이 없어요.';
@@ -476,7 +492,6 @@ const storage = {
           events.forEach(e => { if (e.categoryId === cat.id) e.categoryId = targetId; });
           todos.forEach(t => { if (t.categoryId === cat.id) t.categoryId = targetId; });
         } else {
-          // 모두 삭제
           events = events.filter(e => e.categoryId !== cat.id);
           todos = todos.filter(t => t.categoryId !== cat.id);
         }
@@ -728,6 +743,7 @@ const storage = {
       const isCurMonth = d.getMonth() === month;
       const dayOfWeek = d.getDay();
       const dayEvents = events.filter(e => e.date === dateStr).sort((a,b) => (a.start||'').localeCompare(b.start||''));
+      const dayTodos = todos.filter(t => t.due === dateStr);
 
       const cell = document.createElement('div');
       cell.className = 'month-cell' + (isCurMonth ? '' : ' other-month') + (isSameDay(d, today) ? ' today' : '') + (selectedMonthDate === dateStr ? ' selected' : '');
@@ -738,19 +754,40 @@ const storage = {
       cell.appendChild(dateEl);
 
       const maxShow = 3;
-      dayEvents.slice(0, maxShow).forEach(ev => {
-        const cat = getCat(ev.categoryId);
-        const chip = document.createElement('div');
-        chip.className = 'month-event';
-        chip.style.background = hexToRgba(cat.color, 0.18);
-        chip.style.color = cat.color;
-        chip.textContent = ev.title;
-        cell.appendChild(chip);
+      const items = [];
+      dayEvents.forEach(ev => items.push({ type: 'event', data: ev }));
+      dayTodos.forEach(t => items.push({ type: 'todo', data: t }));
+
+      items.slice(0, maxShow).forEach(item => {
+        if (item.type === 'event') {
+          const ev = item.data;
+          const cat = getCat(ev.categoryId);
+          const chip = document.createElement('div');
+          chip.className = 'month-event';
+          chip.style.background = hexToRgba(cat.color, 0.18);
+          chip.style.color = cat.color;
+          chip.textContent = ev.title;
+          cell.appendChild(chip);
+        } else {
+          const t = item.data;
+          const cat = getCat(t.categoryId);
+          const chip = document.createElement('div');
+          chip.className = 'month-todo' + (t.done ? ' done' : '');
+          chip.style.background = hexToRgba(cat.color, 0.18);
+          chip.style.color = cat.color;
+          chip.innerHTML = `<i class="ti ti-checkbox" style="font-size:10px;"></i><span style="overflow:hidden; text-overflow:ellipsis; min-width:0; white-space:nowrap; font-size:10px;">${t.text}</span>`;
+          chip.onclick = (e) => {
+            e.stopPropagation();
+            document.querySelector('.nav-tab[data-view="todos"]').click();
+          };
+          cell.appendChild(chip);
+        }
       });
-      if (dayEvents.length > maxShow) {
+
+      if (items.length > maxShow) {
         const more = document.createElement('div');
         more.className = 'month-event-more';
-        more.textContent = `+${dayEvents.length - maxShow}`;
+        more.textContent = `+${items.length - maxShow}`;
         cell.appendChild(more);
       }
 
@@ -799,7 +836,6 @@ const storage = {
   document.getElementById('prev-month').onclick = () => { monthOffset--; selectedMonthDate = null; renderMonth(); };
   document.getElementById('next-month').onclick = () => { monthOffset++; selectedMonthDate = null; renderMonth(); };
   document.getElementById('add-event-btn-nav').onclick = () => {
-    // 월별 뷰에서 날짜를 선택한 상태면 그 날짜로, 아니면 오늘 날짜로 일정 추가
     openEventModal(null, selectedMonthDate || fmtDate(new Date()));
   };
 
@@ -818,17 +854,19 @@ const storage = {
       const d = new Date(baseStart); d.setDate(d.getDate() + i);
       const dateStr = fmtDate(d);
       const dayEvents = events.filter(e => e.date === dateStr).sort((a,b) => (a.start||'').localeCompare(b.start||''));
+      const dayTodos = todos.filter(t => t.due === dateStr);
 
       const block = document.createElement('div');
       block.className = 'day-block' + (isSameDay(d, today) ? ' today' : '');
       block.innerHTML = `<div class="day-header"><span class="day-name">${dayNames[i]}요일</span><span class="day-date">${d.getMonth()+1}/${d.getDate()}</span></div>`;
 
-      if (dayEvents.length === 0) {
+      if (dayEvents.length === 0 && dayTodos.length === 0) {
         const empty = document.createElement('div');
         empty.className = 'day-empty';
         empty.textContent = '일정 없음';
         block.appendChild(empty);
       } else {
+        // 일정 먼저
         dayEvents.forEach(ev => {
           const cat = getCat(ev.categoryId);
           const item = document.createElement('div');
@@ -836,6 +874,20 @@ const storage = {
           item.onclick = (e) => { e.stopPropagation(); openEventModal(ev); };
           const catTagHtml = `<span class="todo-cat-tag" style="background:${hexToRgba(cat.color, 0.15)}; color:${cat.color};">${cat.name}</span>`;
           item.innerHTML = `<span class="event-dot" style="background:${cat.color};"></span><span class="event-time">${ev.start ? fmtTimeKR(ev.start) : '종일'}</span><span class="event-title">${ev.title}</span>` + (ev.place ? `<span class="event-place"><i class="ti ti-map-pin" style="font-size:11px;"></i> ${ev.place}</span>` : '') + catTagHtml;
+          block.appendChild(item);
+        });
+        // 할 일은 그 다음
+        dayTodos.forEach(t => {
+          const cat = getCat(t.categoryId);
+          const item = document.createElement('div');
+          item.className = 'week-todo' + (t.done ? ' done' : '');
+          item.style.background = hexToRgba(cat.color, 0.18);
+          item.style.color = cat.color;
+          item.innerHTML = `<i class="ti ti-checkbox"></i><span>${t.text}</span>`;
+          item.onclick = (e) => {
+            e.stopPropagation();
+            document.querySelector('.nav-tab[data-view="todos"]').click();
+          };
           block.appendChild(item);
         });
       }
@@ -939,6 +991,8 @@ const storage = {
         t.done = !t.done;
         save(STORE_TODOS, todos);
         renderTodos();
+        renderMonth();
+        renderWeek();
       };
 
       const main = document.createElement('div');
@@ -972,6 +1026,8 @@ const storage = {
         todos = todos.filter(x => x.id !== t.id);
         save(STORE_TODOS, todos);
         renderTodos();
+        renderMonth();
+        renderWeek();
       };
 
       li.appendChild(check); li.appendChild(main); li.appendChild(tag); li.appendChild(del);
@@ -995,6 +1051,8 @@ const storage = {
     document.getElementById('new-todo-due').value = '';
     save(STORE_TODOS, todos);
     renderTodos();
+    renderMonth();
+    renderWeek();
   }
 
   document.getElementById('new-todo').addEventListener('keydown', (e) => {
@@ -1014,6 +1072,8 @@ const storage = {
     todos = todos.filter(t => !t.done);
     save(STORE_TODOS, todos);
     renderTodos();
+    renderMonth();
+    renderWeek();
   };
 
   function openTodoModal(t) {
@@ -1038,12 +1098,16 @@ const storage = {
     save(STORE_TODOS, todos);
     closeTodoModal();
     renderTodos();
+    renderMonth();
+    renderWeek();
   };
   document.getElementById('td-delete').onclick = () => {
     todos = todos.filter(x => x.id !== editingTodoId);
     save(STORE_TODOS, todos);
     closeTodoModal();
     renderTodos();
+    renderMonth();
+    renderWeek();
   };
 
   function renderCategories() {
@@ -1119,4 +1183,4 @@ if ('serviceWorker' in navigator) {
 </script>
 
 </body>
-</html>
+</html> 
