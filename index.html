@@ -160,7 +160,9 @@
     /* Period Navigator (월/주 뷰 상단) */
     .period-nav { display: flex; justify-content: space-between; align-items: stretch; margin-bottom: 1rem; background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); box-shadow: var(--shadow-sm); overflow: hidden; }
     .period-nav-btn { padding: 6px 14px; background: transparent; border: none; color: var(--color-text-secondary); cursor: pointer; display: flex; align-items: center; font-size: 14px; border-radius: 0; box-shadow: none; }
-    .period-nav-btn:hover { background: var(--color-background-secondary); color: var(--color-text-primary); }
+    @media (hover: hover) {
+  .period-nav-btn:hover { background: var(--color-background-secondary); color: var(--color-text-primary); }
+}
     .period-nav-label-wrap { display: inline-flex; align-items: center; gap: 6px; flex: 1; justify-content: center; }
     .period-nav-label { font-size: 14px; font-weight: 500; color: var(--color-text-primary); white-space: nowrap; }
     .period-nav-dot { width: 6px; height: 6px; background: #7F77DD; border-radius: 50%; flex-shrink: 0; }
@@ -223,8 +225,8 @@
     .detail-event:hover { background: var(--color-background-secondary); }
 
     .todo-input-row { display: flex; gap: 6px; margin-bottom: 1rem; align-items: center; flex-wrap: wrap; }
-    .todo-input-row > input[type="text"] { flex: 1; min-width: 180px; }
-    .todo-input-row > select { width: 110px; flex-shrink: 0; appearance: none; -webkit-appearance: none; -moz-appearance: none; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%237F77DD' d='M0 0l5 6 5-6z'/></svg>"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 28px; cursor: pointer; }
+    .todo-input-row > input[type="text"] { flex: 1; min-width: 80px; }
+    .todo-input-row > select { width: 90px; flex-shrink: 0; appearance: none; -webkit-appearance: none; -moz-appearance: none; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%237F77DD' d='M0 0l5 6 5-6z'/></svg>"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 28px; cursor: pointer; }
     .todo-due-btn { position: relative; display: flex; align-items: center; gap: 4px; padding: 8px 10px; font-size: 13px; background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); cursor: pointer; color: var(--color-text-tertiary); box-shadow: var(--shadow-sm); flex-shrink: 0; }
     .todo-due-btn:hover { background: var(--color-background-secondary); }
     /* 마감일 버튼 커스텀 툴팁 (데스크탑 호버) */
@@ -250,6 +252,7 @@
     /* 클릭 시 짧게 보이는 안내 (모바일/데스크탑 둘 다) */
     .todo-due-btn.show-hint::after { opacity: 1; }
     .todo-due-btn.has-date { color: var(--color-text-info); background: var(--color-background-info); border-color: var(--color-border-info); }
+    .todo-due-btn.has-date::after { content: none; }
     .todo-due-btn i { font-size: 16px; }
     .todo-due-btn input[type="date"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
     .todo-add-btn { padding: 8px 12px; background: #7F77DD; color: white; border: none; border-radius: var(--border-radius-md); cursor: pointer; font-size: 16px; box-shadow: 0 2px 4px rgba(127, 119, 221, 0.35); flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
@@ -355,7 +358,7 @@
     </div>
     <div id="month-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px;"></div>
     <div id="month-day-detail" style="margin-top: 1rem; display: none;">
-      <h4 id="detail-title" style="margin: 0 0 8px;"></h4>
+      <h4 id="detail-title" style="margin: 0 0 8px; font-size: 14px; font-weight: 600; color: var(--color-text-secondary);"></h4>
       <div id="detail-events" style="display: flex; flex-direction: column; gap: 4px;"></div>
     </div>
   </div>
@@ -1280,6 +1283,13 @@ const storage = {
     if (e.key === 'Enter' && !e.isComposing) addTodo();
   });
   document.getElementById('new-todo-add').onclick = addTodo;
+  // iOS 한글 조합 유실 방지: 다른 컨트롤 누르기 직전 제목 조합 확정
+['new-todo-due', 'new-todo-add', 'new-todo-cat'].forEach(id => {
+  document.getElementById(id).addEventListener('pointerdown', () => {
+    const t = document.getElementById('new-todo');
+    if (document.activeElement === t) t.blur();
+  });
+});
   // 마감일 버튼 상태 업데이트
   function updateDueButton() {
     const dueInput = document.getElementById('new-todo-due');
