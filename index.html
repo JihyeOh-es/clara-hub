@@ -258,7 +258,7 @@
     .todo-due-btn.has-date { color: var(--color-text-info); background: var(--color-background-info); border-color: var(--color-border-info); }
     .todo-due-btn.has-date::after { content: none; }
     .todo-due-btn i { font-size: 16px; }
-    .todo-due-btn input[type="date"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    .todo-due-btn input[type="date"] { position: absolute; left: 0; top: 100%; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
     .todo-add-btn { padding: 8px 12px; background: #7F77DD; color: white; border: none; border-radius: var(--border-radius-md); cursor: pointer; font-size: 16px; box-shadow: 0 2px 4px rgba(127, 119, 221, 0.35); flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
     .todo-add-btn:hover { background: #6D65D0; }
     .todo-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); cursor: pointer; box-shadow: var(--shadow-sm);}
@@ -328,7 +328,9 @@
       .month-cell { min-height: 56px; padding: 3px 3px; }
       .month-event { font-size: 9px; }
       .month-todo, .month-todo span, .month-todo i.ti { font-size: 9px; }
-      .nav-tab { padding: 8px 10px; font-size: 13px; }
+      .nav-tab { padding: 0 8px; font-size: 12px; height: 30px; gap: 3px; }
+      .nav-tab i { font-size: 13px; }
+      .today-btn, .add-fab { padding: 0 8px; font-size: 12px; height: 30px; }
     }
   </style>
 </head>
@@ -337,8 +339,8 @@
 <div class="app-container">
   <h2 class="sr-only">Clara's Hub. 일정과 할 일을 통합 관리하는 플래너 앱.</h2>
 
-  <div style="display: flex; align-items: center; gap: 8px; padding-bottom: 1rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--color-border-secondary); box-shadow: 0 4px 6px -4px rgba(0, 0, 0, 0.04); flex-wrap: wrap;">
-    <nav style="display: flex; gap: 4px; flex: 1; flex-wrap: wrap; min-width: 0;">
+    <div style="display: flex; align-items: center; gap: 6px; padding-bottom: 1rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--color-border-secondary); box-shadow: 0 4px 6px -4px rgba(0, 0, 0, 0.04); flex-wrap: nowrap;">
+    <nav style="display: flex; gap: 3px; flex: 1; flex-wrap: nowrap; min-width: 0; overflow: hidden;">
       <button class="nav-tab active" data-view="month"><i class="ti ti-calendar-month" aria-hidden="true"></i> 월</button>
       <button class="nav-tab" data-view="week"><i class="ti ti-layout-kanban" aria-hidden="true"></i> 주</button>
       <button class="nav-tab" data-view="todos"><i class="ti ti-list-check" aria-hidden="true"></i> 할 일</button>
@@ -362,9 +364,9 @@
       <div class="wd">월</div><div class="wd">화</div><div class="wd">수</div><div class="wd">목</div><div class="wd">금</div><div class="wd sat">토</div><div class="wd sun">일</div>
     </div>
     <div id="month-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px;"></div>
-    <div id="month-day-detail" style="margin-top: 2rem; display: none;"></div>
+    <div id="month-day-detail" style="margin-top: 2rem; display: none; padding: 0 12px;">
       <h4 id="detail-title" style="margin: 0 0 12px; padding: 4px 0 4px 10px; font-size: 14px; font-weight: 600; color: var(--color-text-secondary); border-left: 3px solid #7F77DD;"></h4>
-      <div id="detail-events" style="display: flex; flex-direction: column; gap: 4px;"></div>
+      <div id="detail-events" style="background: #FAFAF6; border-radius: var(--border-radius-md); padding: 10px; display: flex; flex-direction: column; gap: 6px;"></div>
     </div>
   </div>
 
@@ -1315,6 +1317,8 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
   // 마감일 버튼 클릭 시 짧게 안내 텍스트 표시 (모바일 + 데스크탑)
   document.getElementById('new-todo-due-btn').addEventListener('click', () => {
     const btn = document.getElementById('new-todo-due-btn');
+    const due = document.getElementById('new-todo-due');
+    if (due.showPicker) due.showPicker(); else due.click();
     btn.classList.add('show-hint');
     setTimeout(() => btn.classList.remove('show-hint'), 1500);
   });
