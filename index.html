@@ -92,6 +92,7 @@
     input:focus, select:focus, textarea:focus {
       border-color: var(--color-border-info);
     }
+    input.error, input.error:focus { border-color: var(--color-text-danger); }
     .sr-only {
       position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
       overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
@@ -123,6 +124,8 @@
       font-weight: 500;
       box-shadow: var(--shadow-lg);
     }
+    .today-btn { padding: 6px 14px; height: 28px; background: var(--color-background-primary); color: var(--color-text-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; box-shadow: var(--shadow-sm); display: flex; align-items: center; flex-shrink: 0; }
+    .today-btn:hover { background: var(--color-background-secondary); color: var(--color-text-primary); }
     .add-fab {
       height: 28px;
       padding: 0 10px;
@@ -144,13 +147,23 @@
     .add-fab i { font-size: 14px; }
     .add-fab:hover {
       transform: translateY(-1px);
-      box-shadow: 0 3px 6px rgba(127, 119, 221, 0.45)
-      background: #6D65D0;
+      box-shadow: 0 4px 8px rgba(127, 119, 221, 0.5);
+      background: #5D54C2;
     }
     .add-fab:active {
       transform: translateY(0);
       box-shadow: 0 1px 2px rgba(127, 119, 221, 0.4);
     }
+    
+    /* Period Navigator (월/주 뷰 상단) */
+    /* Period Navigator (월/주 뷰 상단) */
+    /* Period Navigator (월/주 뷰 상단) */
+    .period-nav { display: flex; justify-content: space-between; align-items: stretch; margin-bottom: 1rem; background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); box-shadow: var(--shadow-sm); overflow: hidden; }
+    .period-nav-btn { padding: 6px 14px; background: transparent; border: none; color: var(--color-text-secondary); cursor: pointer; display: flex; align-items: center; font-size: 14px; border-radius: 0; box-shadow: none; }
+    .period-nav-btn:hover { background: var(--color-background-secondary); color: var(--color-text-primary); }
+    .period-nav-label-wrap { display: inline-flex; align-items: center; gap: 6px; flex: 1; justify-content: center; }
+    .period-nav-label { font-size: 14px; font-weight: 500; color: var(--color-text-primary); white-space: nowrap; }
+    .period-nav-dot { width: 6px; height: 6px; background: #7F77DD; border-radius: 50%; flex-shrink: 0; }
 
     .wd { text-align: center; font-size: 11px; color: var(--color-text-tertiary); padding: 4px 0; font-weight: 500; }
     .wd.sun { color: #D93B3B; } .wd.sat { color: #378ADD; }
@@ -180,19 +193,27 @@
     .week-board.list-mode .day-block { width: 100%; max-width: none; min-height: auto; }
     .week-board::-webkit-scrollbar { height: 6px; }
     .week-board::-webkit-scrollbar-thumb { background: var(--color-border-tertiary); border-radius: 3px; }
-    .day-block { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 10px 12px 16px; background: var(--color-background-primary); cursor: pointer; width: calc(100% - 40px); max-width: 680px; flex-shrink: 0; display: flex; flex-direction: column; gap: 6px; min-height: 50vh; box-shadow: var(--shadow-sm); overflow: hidden; }
+    .day-block { border: 1px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 10px 12px 16px; background: var(--color-background-primary); cursor: pointer; width: calc(100% - 40px); max-width: 680px; flex-shrink: 0; display: flex; flex-direction: column; gap: 6px; min-height: 50vh; box-shadow: var(--shadow-sm); overflow: hidden; }
     .day-block.today { border-color: var(--color-border-info); background: var(--color-background-info); }
-    .day-header { display: flex; align-items: baseline; justify-content: space-between; margin: -10px -12px 8px; padding: 10px 14px; background: #EFEDFA; border-bottom: 0.5px solid #D9D4F0; border-radius: var(--border-radius-md) var(--border-radius-md) 0 0; }
-    .day-name { font-size: 15px; font-weight: 600; color: var(--color-text-primary); }
-    .day-date { font-size: 13px; color: var(--color-text-secondary); font-weight: 500; font-variant-numeric: tabular-nums; }
+    .week-board.list-mode .day-block.today { border-color: var(--color-border-tertiary); background: var(--color-background-primary); }
+    /* 리스트 모드: 헤더를 카드 바깥으로 빼서 레이블 느낌 */
+    .week-board.list-mode .day-block { padding: 12px 14px; gap: 8px; min-height: auto; }
+    .day-header-wrap { display: flex; align-items: center; gap: 8px; }
+    .day-header-wrap .day-today-dot { margin: 0 0 8px 0; align-self: center; }
+    .day-header { display: inline-flex; align-items: center; align-self: flex-start; margin: 0 0 8px; padding: 4px 12px; background: #EFEDFA; border: none; border-radius: 999px; }
+    .day-name { font-size: 12px; font-weight: 600; color: #5D54C2; font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+    .day-name-suffix { font-size: 11px; color: #5D54C2; opacity: 0.7; font-weight: 500; margin-left: 2px; }
+    .week-board.list-mode .day-name { font-size: 12px; font-weight: 600; letter-spacing: 0.02em; color: #5D54C2; }
+    .week-board.list-mode { gap: 16px; }
+    .day-today-dot { width: 6px; height: 6px; background: #7F77DD; border-radius: 50%; margin-left: 6px; align-self: center; flex-shrink: 0; }
     .event-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; font-size: 13px; border-radius: 6px; cursor: pointer; flex-wrap: nowrap; white-space: nowrap; min-width: 0; background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); }
-    .event-item:hover { background: var(--color-background-secondary); }
     .event-item:hover { background: var(--color-background-secondary); }
     .event-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
     .event-time { font-variant-numeric: tabular-nums; color: var(--color-text-secondary); font-size: 12px; min-width: 50px; }
     .event-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
     .event-place { font-size: 11px; color: var(--color-text-tertiary); }
     .day-empty { font-size: 12px; color: var(--color-text-tertiary); padding: 2px 0; }
+    .day-content { background: #FAFAF6; border-radius: var(--border-radius-md); padding: 10px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
     .week-todo { display: flex; align-items: center; gap: 6px; padding: 4px 6px; font-size: 12px; border-radius: 4px; cursor: pointer; }
     .week-todo.done { opacity: 0.5; text-decoration: line-through; }
     .week-todo i.ti { font-size: 12px; flex-shrink: 0; }
@@ -201,6 +222,38 @@
     .detail-event { display: flex; align-items: center; gap: 8px; padding: 8px 10px; font-size: 13px; border: 0.5px solid var(--color-border-tertiary); border-radius: 6px; cursor: pointer; background: var(--color-background-primary); box-shadow: var(--shadow-sm);}
     .detail-event:hover { background: var(--color-background-secondary); }
 
+    .todo-input-row { display: flex; gap: 6px; margin-bottom: 1rem; align-items: center; flex-wrap: wrap; }
+    .todo-input-row > input[type="text"] { flex: 1; min-width: 180px; }
+    .todo-input-row > select { width: 110px; flex-shrink: 0; appearance: none; -webkit-appearance: none; -moz-appearance: none; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%237F77DD' d='M0 0l5 6 5-6z'/></svg>"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 28px; cursor: pointer; }
+    .todo-due-btn { position: relative; display: flex; align-items: center; gap: 4px; padding: 8px 10px; font-size: 13px; background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); cursor: pointer; color: var(--color-text-tertiary); box-shadow: var(--shadow-sm); flex-shrink: 0; }
+    .todo-due-btn:hover { background: var(--color-background-secondary); }
+    /* 마감일 버튼 커스텀 툴팁 (데스크탑 호버) */
+    .todo-due-btn::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--color-text-primary);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s;
+      z-index: 50;
+    }
+    .todo-due-btn:hover::after { opacity: 1; }
+
+    /* 클릭 시 짧게 보이는 안내 (모바일/데스크탑 둘 다) */
+    .todo-due-btn.show-hint::after { opacity: 1; }
+    .todo-due-btn.has-date { color: var(--color-text-info); background: var(--color-background-info); border-color: var(--color-border-info); }
+    .todo-due-btn i { font-size: 16px; }
+    .todo-due-btn input[type="date"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    .todo-add-btn { padding: 8px 12px; background: #7F77DD; color: white; border: none; border-radius: var(--border-radius-md); cursor: pointer; font-size: 16px; box-shadow: 0 2px 4px rgba(127, 119, 221, 0.35); flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+    .todo-add-btn:hover { background: #6D65D0; }
     .todo-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); cursor: pointer; box-shadow: var(--shadow-sm);}
     .todo-item.done .todo-text { text-decoration: line-through; color: var(--color-text-tertiary); }
     .todo-item.overdue { border-color: var(--color-border-danger); background: var(--color-background-danger); }
@@ -216,10 +269,26 @@
     .todo-cat-tag { font-size: 11px; padding: 2px 8px; border-radius: 10px; white-space: nowrap; flex-shrink: 0; }
     .todo-delete { border: none; background: transparent; color: var(--color-text-tertiary); cursor: pointer; padding: 4px; font-size: 16px; opacity: 0.5; }
     .todo-item:hover .todo-delete { opacity: 1; }
-    .filter-btn.active { background: var(--color-background-secondary); border-color: var(--color-border-secondary); }
-    .cat-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); box-shadow: var(--shadow-sm);}
-    .cat-swatch { width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0; cursor: pointer; border: 0.5px solid var(--color-border-tertiary); }
-    .cat-name-input { flex: 1; font-size: 14px; border: none; background: transparent; outline: none; padding: 4px; }
+    .filter-btn.active { background: #EFEDFA; border-color: #D9D4F0; color: #5D54C2; font-weight: 500; }
+    /* Category Color Picker */
+    .cat-color-btn { display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); cursor: pointer; box-shadow: var(--shadow-sm); flex-shrink: 0; color: var(--color-text-tertiary); }
+    .cat-color-btn:hover { background: var(--color-background-secondary); }
+    .cat-color-swatch { width: 16px; height: 16px; border-radius: 50%; border: 0.5px solid var(--color-border-tertiary); }
+    .cat-color-popup { position: absolute; top: calc(100% + 4px); right: 60px; z-index: 100; background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); box-shadow: var(--shadow-xl); padding: 10px; display: flex; flex-direction: column; gap: 8px; min-width: 180px; }
+    .cat-color-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+    .cat-color-option { width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; color: white; }
+    .cat-color-option:hover { transform: scale(1.1); }
+    .cat-color-option.selected { border-color: var(--color-text-primary); }
+    .cat-color-custom-btn { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px; font-size: 13px; background: var(--color-background-secondary); color: var(--color-text-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); cursor: pointer; }
+    .cat-color-custom-btn:hover { background: var(--color-background-tertiary); }
+    .cat-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); box-shadow: var(--shadow-sm); transition: background 0.1s; }
+    .cat-row:hover { background: var(--color-background-secondary); }
+    .cat-swatch { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; border: 0.5px solid var(--color-border-tertiary); }
+    .cat-name { flex: 1; font-size: 14px; color: var(--color-text-primary); }
+    .cat-actions { display: flex; gap: 2px; opacity: 0; transition: opacity 0.1s; }
+    .cat-row:hover .cat-actions { opacity: 1; }
+    .cat-action-btn { border: none; background: transparent; color: var(--color-text-tertiary); cursor: pointer; padding: 6px; border-radius: 4px; display: flex; align-items: center; }
+    .cat-action-btn:hover { background: var(--color-background-tertiary); color: var(--color-text-primary); }
 
     /* Time Picker */
     .tp-wrap { position: relative; }
@@ -260,23 +329,28 @@
 <div class="app-container">
   <h2 class="sr-only">Clara's Hub. 일정과 할 일을 통합 관리하는 플래너 앱.</h2>
 
-  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 1.25rem;">
-    <nav style="display: flex; gap: 4px; flex: 1; flex-wrap: wrap;">
+  <div style="display: flex; align-items: center; gap: 8px; padding-bottom: 1rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--color-border-secondary); box-shadow: 0 4px 6px -4px rgba(0, 0, 0, 0.04); flex-wrap: wrap;">
+    <nav style="display: flex; gap: 4px; flex: 1; flex-wrap: wrap; min-width: 0;">
       <button class="nav-tab active" data-view="month"><i class="ti ti-calendar-month" aria-hidden="true"></i> 월</button>
       <button class="nav-tab" data-view="week"><i class="ti ti-layout-kanban" aria-hidden="true"></i> 주</button>
       <button class="nav-tab" data-view="todos"><i class="ti ti-list-check" aria-hidden="true"></i> 할 일</button>
       <button class="nav-tab" data-view="categories"><i class="ti ti-tag" aria-hidden="true"></i> 태그</button>
     </nav>
+    <button id="today-btn" class="today-btn" style="display:none;" title="오늘로 이동">오늘</button>
     <button id="add-event-btn-nav" title="일정 추가" class="add-fab"><i class="ti ti-plus" aria-hidden="true"></i><span>일정</span></button>
   </div>
 
   <div id="view-month" class="view">
-    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
-      <button id="prev-month" style="padding: 4px 10px;"><i class="ti ti-chevron-left"></i></button>
-      <span id="month-label" style="font-size: 14px; font-weight: 500;"></span>
-      <button id="next-month" style="padding: 4px 10px;"><i class="ti ti-chevron-right"></i></button>
+    <div class="period-nav">
+      <button id="prev-month" class="period-nav-btn"><i class="ti ti-chevron-left"></i></button>
+      <span class="period-nav-label-wrap">
+        <span id="month-label" class="period-nav-label"></span>
+        <span id="month-dot" class="period-nav-dot" style="display:none;"></span>
+      </span>
+      <button id="next-month" class="period-nav-btn"><i class="ti ti-chevron-right"></i></button>
     </div>
-    <div id="month-weekdays" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-bottom: 4px;">
+    
+  <div id="month-weekdays" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-bottom: 6px; background: var(--color-background-tertiary); border-radius: var(--border-radius-md); box-shadow: var(--shadow-sm);">
       <div class="wd">월</div><div class="wd">화</div><div class="wd">수</div><div class="wd">목</div><div class="wd">금</div><div class="wd sat">토</div><div class="wd sun">일</div>
     </div>
     <div id="month-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px;"></div>
@@ -287,28 +361,33 @@
   </div>
 
   <div id="view-week" class="view" style="display: none;">
-    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
-      <button id="prev-week" style="padding: 4px 10px;"><i class="ti ti-chevron-left"></i></button>
-      <span id="week-label" style="font-size: 14px; font-weight: 500;"></span>
-      <button id="next-week" style="padding: 4px 10px;"><i class="ti ti-chevron-right"></i></button>
-    </div>
-    <div style="display: flex; gap: 4px; margin-bottom: 1rem; justify-content: flex-end;">
-      <button class="week-view-btn active" data-week-view="board" title="가로 보기"><i class="ti ti-layout-board"></i></button>
-      <button class="week-view-btn" data-week-view="list" title="세로 보기"><i class="ti ti-list"></i></button>
+    <div style="display: flex; gap: 8px; align-items: stretch; margin-bottom: 1rem;">
+      <div class="period-nav" style="flex: 1; margin-bottom: 0;">
+        <button id="prev-week" class="period-nav-btn"><i class="ti ti-chevron-left"></i></button>
+        <span class="period-nav-label-wrap">
+          <span id="week-label" class="period-nav-label"></span>
+          <span id="week-dot" class="period-nav-dot" style="display:none;"></span>
+        </span>
+        <button id="next-week" class="period-nav-btn"><i class="ti ti-chevron-right"></i></button>
+      </div>
+      <div style="display: flex; gap: 4px; flex-shrink: 0;">
+        <button class="week-view-btn active" data-week-view="board" title="가로 보기"><i class="ti ti-layout-board"></i></button>
+        <button class="week-view-btn" data-week-view="list" title="세로 보기"><i class="ti ti-list"></i></button>
+      </div>
     </div>
     <div id="week-days" class="week-board"></div>
   </div>
 
   <div id="view-todos" class="view" style="display: none;">
-    <div style="display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap;">
-      <input type="text" id="new-todo" placeholder="할 일 입력" style="flex: 1; min-width: 180px;" />
-      <select id="new-todo-cat" style="width: 100px;"></select>
-    </div>
-    <div style="display: flex; gap: 6px; margin-bottom: 1rem; align-items: center;">
-      <label style="font-size: 12px; color: var(--color-text-secondary);">마감</label>
-      <input type="date" id="new-todo-due" style="flex: 1;" />
-      <button id="new-todo-clear-due" style="padding: 4px 8px; font-size: 12px;"><i class="ti ti-x"></i></button>
-      <button id="new-todo-add" style="padding: 6px 14px;"><i class="ti ti-plus"></i> 추가</button>
+    <div class="todo-input-row">
+      <input type="text" id="new-todo" placeholder="할 일 입력" />
+      <select id="new-todo-cat"></select>
+      <button id="new-todo-due-btn" class="todo-due-btn" data-tooltip="마감일 선택">
+        <i class="ti ti-calendar"></i>
+        <span id="new-todo-due-label" style="display:none;"></span>
+        <input type="date" id="new-todo-due" />
+      </button>
+      <button id="new-todo-add" class="todo-add-btn" title="추가"><i class="ti ti-plus"></i></button>
     </div>
     <div style="display: flex; gap: 6px; margin-bottom: 1rem; font-size: 13px; flex-wrap: wrap;">
       <button class="filter-btn active" data-filter="all" style="padding: 4px 12px; font-size: 13px;">전체</button>
@@ -322,10 +401,23 @@
   </div>
 
   <div id="view-categories" class="view" style="display: none;">
-    <div style="display: flex; gap: 8px; margin-bottom: 1rem;">
-      <input type="text" id="new-cat-name" placeholder="새 카테고리 이름" style="flex: 1;" />
-      <input type="color" id="new-cat-color" value="#7F77DD" style="width: 50px; height: 36px; padding: 2px; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); cursor: pointer;" />
-      <button id="add-cat-btn"><i class="ti ti-plus"></i> 추가</button>
+    <div style="display: flex; gap: 8px; margin-bottom: 2rem; position: relative;">
+      <div style="flex: 1; position: relative;">
+        <input type="text" id="new-cat-name" placeholder="새 카테고리 이름" style="width: 100%;" />
+        <div id="new-cat-name-error" style="display:none; color: var(--color-text-danger); font-size: 12px; margin-top: 4px; position: absolute; top: 100%; left: 0;"></div>
+      </div>
+      <button id="new-cat-color-btn" class="cat-color-btn" type="button" title="색상 선택">
+        <span id="new-cat-color-swatch" class="cat-color-swatch"></span>
+        <i class="ti ti-chevron-down" style="font-size:12px;"></i>
+      </button>
+      <input type="color" id="new-cat-color" value="#FFD9A8" style="display: none;" />
+      <button id="add-cat-btn" class="todo-add-btn" title="추가"><i class="ti ti-plus"></i></button>
+      <div id="cat-color-popup" class="cat-color-popup" style="display:none;">
+        <div class="cat-color-options"></div>
+        <button id="cat-color-custom-btn" class="cat-color-custom-btn" type="button">
+          <i class="ti ti-palette" style="font-size:14px;"></i> 직접 선택
+        </button>
+      </div>
     </div>
     <ul id="cat-list" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px;"></ul>
   </div>
@@ -334,7 +426,10 @@
     <div style="background: var(--color-background-primary); border-radius: var(--border-radius-lg); padding: 1.25rem; width: 100%; max-width: 420px; border: 0.5px solid var(--color-border-tertiary); max-height: 90vh; overflow-y: auto;box-shadow: var(--shadow-xl);">
       <h3 id="modal-title" style="margin: 0 0 1rem;">일정 추가</h3>
       <div style="display: flex; flex-direction: column; gap: 10px;">
-        <input type="text" id="ev-title" placeholder="제목" />
+        <div>
+          <input type="text" id="ev-title" placeholder="제목" style="width: 100%;" />
+          <div id="ev-title-error" style="display:none; color: var(--color-text-danger); font-size: 12px; margin-top: 4px;">제목을 입력하세요</div>
+        </div>
         <select id="ev-cat"></select>
         <input type="date" id="ev-date" />
         <div style="display: flex; gap: 8px; align-items: center;">
@@ -404,6 +499,32 @@
       <div style="display: flex; gap: 8px; justify-content: flex-end;">
         <button id="cat-delete-cancel">취소</button>
         <button id="cat-delete-ok" style="background: var(--color-text-danger); color: white; border-color: var(--color-text-danger);">삭제</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="cat-edit-modal-overlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 200; align-items: center; justify-content: center; padding: 1rem;">
+    <div style="background: var(--color-background-primary); border-radius: var(--border-radius-lg); padding: 1.25rem; width: 100%; max-width: 360px; border: 0.5px solid var(--color-border-tertiary); box-shadow: var(--shadow-xl);">
+      <h3 style="margin: 0 0 1rem;">카테고리 편집</h3>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div>
+          <label style="font-size: 12px; color: var(--color-text-secondary); display: block; margin-bottom: 4px;">이름</label>
+          <input type="text" id="cat-edit-name" style="width: 100%;" />
+          <div id="cat-edit-name-error" style="display:none; color: var(--color-text-danger); font-size: 12px; margin-top: 4px;"></div>
+        </div>
+        <div>
+          <label style="font-size: 12px; color: var(--color-text-secondary); display: block; margin-bottom: 4px;">색상</label>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <label class="cat-swatch" id="cat-edit-swatch-label" style="width: 32px; height: 32px;">
+              <input type="color" id="cat-edit-color" style="display: none;" />
+            </label>
+            <span id="cat-edit-color-text" style="font-size: 13px; color: var(--color-text-tertiary); font-variant-numeric: tabular-nums;"></span>
+          </div>
+        </div>
+      </div>
+      <div style="display: flex; gap: 8px; margin-top: 1.25rem; justify-content: flex-end;">
+        <button id="cat-edit-cancel">취소</button>
+        <button id="cat-edit-save" class="todo-add-btn" style="padding: 8px 16px; font-size: 14px;">저장</button>
       </div>
     </div>
   </div>
@@ -544,6 +665,24 @@ const storage = {
     const h = hex.replace('#', '');
     return `rgba(${parseInt(h.slice(0,2),16)},${parseInt(h.slice(2,4),16)},${parseInt(h.slice(4,6),16)},${alpha})`;
   }
+  // 색의 밝기에 따라 적절한 텍스트 색 반환
+  function textColorForBg(hex) {
+    const h = hex.replace('#', '');
+    const r = parseInt(h.slice(0,2), 16);
+    const g = parseInt(h.slice(2,4), 16);
+    const b = parseInt(h.slice(4,6), 16);
+    // 인지 밝기 (perceived brightness) 공식
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+    // 밝으면 다크그레이, 어두우면 더 진한 버전 사용
+    if (brightness > 180) {
+      // 같은 색조의 훨씬 진한 버전 만들기 (각 채널 50% 어둡게)
+      const dr = Math.floor(r * 0.45);
+      const dg = Math.floor(g * 0.45);
+      const db = Math.floor(b * 0.45);
+      return `rgb(${dr},${dg},${db})`;
+    }
+    return hex;
+  }
   function startOfWeek(date) {
     const d = new Date(date); d.setHours(0,0,0,0);
     const day = d.getDay(); d.setDate(d.getDate() + (day === 0 ? -6 : 1 - day));
@@ -644,15 +783,6 @@ const storage = {
     const colsRow = document.createElement('div');
     colsRow.className = 'tp-cols';
 
-    const periodCol = document.createElement('div');
-    periodCol.className = 'tp-col';
-    ['오전', '오후'].forEach(p => {
-      const opt = document.createElement('div');
-      opt.className = 'tp-opt'; opt.textContent = p; opt.dataset.period = p;
-      opt.onclick = (e) => { e.stopPropagation(); period = p; syncDirectInputs(); refreshOptions(); };
-      periodCol.appendChild(opt);
-    });
-
     const hourCol = document.createElement('div');
     hourCol.className = 'tp-col';
     for (let h = 1; h <= 12; h++) {
@@ -691,7 +821,7 @@ const storage = {
     clearBtn.onclick = (e) => { e.stopPropagation(); value = ''; updateTrigger(); closePopup(); };
     actionCol.appendChild(confirmBtn); actionCol.appendChild(clearBtn);
 
-    colsRow.appendChild(periodCol); colsRow.appendChild(hourCol); colsRow.appendChild(minCol); colsRow.appendChild(actionCol);
+    colsRow.appendChild(hourCol); colsRow.appendChild(minCol); colsRow.appendChild(actionCol);
     popup.appendChild(directRow); popup.appendChild(colsRow);
 
     function syncDirectInputs() { hourInput.value = hour12; minuteInput.value = minute; }
@@ -699,10 +829,9 @@ const storage = {
     function refreshOptions() {
       amBtn.classList.toggle('active', period === '오전');
       pmBtn.classList.toggle('active', period === '오후');
-      periodCol.querySelectorAll('.tp-opt').forEach(o => o.classList.toggle('selected', o.dataset.period === period));
       hourCol.querySelectorAll('.tp-opt').forEach(o => o.classList.toggle('selected', parseInt(o.dataset.hour) === hour12));
       minCol.querySelectorAll('.tp-opt').forEach(o => o.classList.toggle('selected', parseInt(o.dataset.minute) === minute));
-      [periodCol, hourCol, minCol].forEach(col => {
+      [hourCol, minCol].forEach(col => {
         const sel = col.querySelector('.tp-opt.selected');
         if (sel) sel.scrollIntoView({ block: 'nearest' });
       });
@@ -746,6 +875,8 @@ const storage = {
       if (tab.dataset.view === 'todos') renderTodos();
       if (tab.dataset.view === 'month') renderMonth();
       if (tab.dataset.view === 'week') renderWeek();
+      if (tab.dataset.view === 'week') renderWeek();
+      updateTodayBtn();
     };
   });
 
@@ -754,7 +885,8 @@ const storage = {
     const baseMonth = new Date(today.getFullYear(), today.getMonth() + monthOffset, 1);
     const year = baseMonth.getFullYear();
     const month = baseMonth.getMonth();
-    document.getElementById('month-label').textContent = `${year}년 ${month + 1}월` + (monthOffset === 0 ? ' (이번 달)' : '');
+    document.getElementById('month-label').textContent = `${year}년 ${month + 1}월`;
+    document.getElementById('month-dot').style.display = monthOffset === 0 ? 'inline-block' : 'none';
 
     const firstDay = new Date(year, month, 1);
     const gridStart = startOfWeek(firstDay);
@@ -790,7 +922,7 @@ const storage = {
           const chip = document.createElement('div');
           chip.className = 'month-event';
           chip.style.background = hexToRgba(cat.color, 0.18);
-          chip.style.color = cat.color;
+          chip.style.color = textColorForBg(cat.color);
           chip.textContent = ev.title;
           cell.appendChild(chip);
         } else {
@@ -798,8 +930,8 @@ const storage = {
           const cat = getCat(t.categoryId);
           const chip = document.createElement('div');
           chip.className = 'month-todo' + (t.done ? ' done' : '');
-          chip.style.background = hexToRgba(cat.color, 0.18);
-          chip.style.color = cat.color;
+          chip.style.background = '#FFE4D1';
+          chip.style.color = '#A8541A';
           chip.innerHTML = `<i class="ti ti-checkbox" style="font-size:10px;"></i><span style="overflow:hidden; text-overflow:ellipsis; min-width:0; white-space:nowrap; font-size:10px;">${t.text}</span>`;
           chip.onclick = (e) => {
             e.stopPropagation();
@@ -848,7 +980,7 @@ const storage = {
         const cat = getCat(ev.categoryId);
         const item = document.createElement('div');
         item.className = 'detail-event';
-        const catTagHtml = `<span class="todo-cat-tag" style="background:${hexToRgba(cat.color, 0.15)}; color:${cat.color};">${cat.name}</span>`;
+        const catTagHtml = `<span class="todo-cat-tag" style="background:${hexToRgba(cat.color, 0.15)}; color:${textColorForBg(cat.color)};">${cat.name}</span>`;
         item.innerHTML = `<span class="event-dot" style="background:${cat.color};"></span><span class="event-time">${ev.start ? fmtTimeKR(ev.start) : '종일'}</span><span class="event-title">${ev.title}</span>` + (ev.place ? `<span class="event-place"><i class="ti ti-map-pin" style="font-size:11px;"></i> ${ev.place}</span>` : '') + catTagHtml;
         item.onclick = () => openEventModal(ev);
         list.appendChild(item);
@@ -858,8 +990,23 @@ const storage = {
     detail.style.display = 'block';
   }
 
-  document.getElementById('prev-month').onclick = () => { monthOffset--; selectedMonthDate = null; renderMonth(); };
-  document.getElementById('next-month').onclick = () => { monthOffset++; selectedMonthDate = null; renderMonth(); };
+  document.getElementById('prev-month').onclick = () => { monthOffset--; selectedMonthDate = null; renderMonth(); updateTodayBtn(); };
+  document.getElementById('next-month').onclick = () => { monthOffset++; selectedMonthDate = null; renderMonth(); updateTodayBtn(); };
+  // 오늘 버튼 - 현재 달/주가 아닐 때만 표시
+  function updateTodayBtn() {
+    const activeView = document.querySelector('.nav-tab.active')?.dataset.view;
+    const todayBtn = document.getElementById('today-btn');
+    let show = false;
+    if (activeView === 'month' && monthOffset !== 0) show = true;
+    if (activeView === 'week' && weekOffset !== 0) show = true;
+    todayBtn.style.display = show ? 'flex' : 'none';
+  }
+  document.getElementById('today-btn').onclick = () => {
+    const activeView = document.querySelector('.nav-tab.active')?.dataset.view;
+    if (activeView === 'month') { monthOffset = 0; selectedMonthDate = null; renderMonth(); }
+    if (activeView === 'week') { weekOffset = 0; renderWeek(); }
+    updateTodayBtn();
+  };
   document.getElementById('add-event-btn-nav').onclick = () => {
     openEventModal(null, selectedMonthDate || fmtDate(new Date()));
   };
@@ -869,7 +1016,8 @@ const storage = {
     const baseStart = startOfWeek(today);
     baseStart.setDate(baseStart.getDate() + weekOffset * 7);
     const weekEnd = new Date(baseStart); weekEnd.setDate(weekEnd.getDate() + 6);
-    document.getElementById('week-label').textContent = `${baseStart.getMonth()+1}월 ${baseStart.getDate()}일 - ${weekEnd.getMonth()+1}월 ${weekEnd.getDate()}일` + (weekOffset === 0 ? ' (이번 주)' : '');
+    document.getElementById('week-label').textContent = `${baseStart.getMonth()+1}월 ${baseStart.getDate()}일 - ${weekEnd.getMonth()+1}월 ${weekEnd.getDate()}일`;
+    document.getElementById('week-dot').style.display = weekOffset === 0 ? 'inline-block' : 'none';
 
     const dayNames = ['월','화','수','목','금','토','일'];
     const container = document.getElementById('week-days');
@@ -883,13 +1031,17 @@ const storage = {
 
       const block = document.createElement('div');
       block.className = 'day-block' + (isSameDay(d, today) ? ' today' : '');
-      block.innerHTML = `<div class="day-header"><span class="day-name">${dayNames[i]}요일</span><span class="day-date">${d.getMonth()+1}/${d.getDate()}</span></div>`;
+      const todayDot = isSameDay(d, today) ? '<span class="day-today-dot"></span>' : '';
+      block.innerHTML = `<div class="day-header-wrap"><div class="day-header"><span class="day-name">${d.getMonth()+1}/${d.getDate()} <span class="day-name-suffix">(${dayNames[i]})</span></span></div>${todayDot}</div>`;
+      const contentBox = document.createElement('div');
+      contentBox.className = 'day-content';
+      block.appendChild(contentBox);
 
       if (dayEvents.length === 0 && dayTodos.length === 0) {
         const empty = document.createElement('div');
         empty.className = 'day-empty';
         empty.textContent = '일정 없음';
-        block.appendChild(empty);
+        contentBox.appendChild(empty);
       } else {
         // 일정 먼저
         dayEvents.forEach(ev => {
@@ -897,23 +1049,23 @@ const storage = {
           const item = document.createElement('div');
           item.className = 'event-item';
           item.onclick = (e) => { e.stopPropagation(); openEventModal(ev); };
-          const catTagHtml = `<span class="todo-cat-tag" style="background:${hexToRgba(cat.color, 0.15)}; color:${cat.color};">${cat.name}</span>`;
+          const catTagHtml = `<span class="todo-cat-tag" style="background:${hexToRgba(cat.color, 0.15)}; color:${textColorForBg(cat.color)};">${cat.name}</span>`;
           item.innerHTML = `<span class="event-dot" style="background:${cat.color};"></span><span class="event-time">${ev.start ? fmtTimeKR(ev.start) : '종일'}</span><span class="event-title">${ev.title}</span>` + (ev.place ? `<span class="event-place"><i class="ti ti-map-pin" style="font-size:11px;"></i> ${ev.place}</span>` : '') + catTagHtml;
-          block.appendChild(item);
+          contentBox.appendChild(item);
         });
         // 할 일은 그 다음
         dayTodos.forEach(t => {
           const cat = getCat(t.categoryId);
           const item = document.createElement('div');
           item.className = 'week-todo' + (t.done ? ' done' : '');
-          item.style.background = hexToRgba(cat.color, 0.18);
-          item.style.color = cat.color;
+          item.style.background = '#FFE4D1';
+          item.style.color = '#A8541A';
           item.innerHTML = `<i class="ti ti-checkbox"></i><span>${t.text}</span>`;
           item.onclick = (e) => {
             e.stopPropagation();
             document.querySelector('.nav-tab[data-view="todos"]').click();
           };
-          block.appendChild(item);
+          contentBox.appendChild(item);
         });
       }
       block.onclick = () => openEventModal(null, dateStr);
@@ -921,8 +1073,8 @@ const storage = {
     }
   }
 
-  document.getElementById('prev-week').onclick = () => { weekOffset--; renderWeek(); };
-  document.getElementById('next-week').onclick = () => { weekOffset++; renderWeek(); };
+  document.getElementById('prev-week').onclick = () => { weekOffset--; renderWeek(); updateTodayBtn(); };
+  document.getElementById('next-week').onclick = () => { weekOffset++; renderWeek(); updateTodayBtn(); };
   // 주간 보기 모드 토글
   let weekViewMode = localStorage.getItem('planner:weekViewMode') || 'board';
   function applyWeekViewMode() {
@@ -964,7 +1116,12 @@ const storage = {
     document.getElementById('ev-memo').value = ev ? (ev.memo || '') : '';
     document.getElementById('modal-overlay').style.display = 'flex';
   }
-  function closeEventModal() { document.getElementById('modal-overlay').style.display = 'none'; editingEventId = null; }
+  function closeEventModal() {
+    document.getElementById('modal-overlay').style.display = 'none';
+    document.getElementById('ev-title').classList.remove('error');
+    document.getElementById('ev-title-error').style.display = 'none';
+    editingEventId = null;
+  }
   document.getElementById('ev-cancel').onclick = closeEventModal;
   document.getElementById('modal-overlay').onclick = (e) => { if (e.target.id === 'modal-overlay') closeEventModal(); };
   // 일정 추가 모달에서 엔터 키로 저장 (메모 제외)
@@ -976,9 +1133,21 @@ const storage = {
       }
     });
   });
+  // 제목 입력 시 에러 해제
+  document.getElementById('ev-title').addEventListener('input', () => {
+    document.getElementById('ev-title').classList.remove('error');
+    document.getElementById('ev-title-error').style.display = 'none';
+  });
   document.getElementById('ev-save').onclick = () => {
-    const title = document.getElementById('ev-title').value.trim();
-    if (!title) return document.getElementById('ev-title').focus();
+    const titleInput = document.getElementById('ev-title');
+    const titleError = document.getElementById('ev-title-error');
+    const title = titleInput.value.trim();
+    if (!title) {
+      titleInput.classList.add('error');
+      titleError.style.display = 'block';
+      titleInput.focus();
+      return;
+    }
     const newEv = {
       id: editingEventId || uid(),
       title, categoryId: document.getElementById('ev-cat').value,
@@ -1067,7 +1236,7 @@ const storage = {
       tag.className = 'todo-cat-tag';
       tag.textContent = cat.name;
       tag.style.background = hexToRgba(cat.color, 0.15);
-      tag.style.color = cat.color;
+      tag.style.color = textColorForBg(cat.color);
 
       const del = document.createElement('button');
       del.className = 'todo-delete';
@@ -1100,6 +1269,7 @@ const storage = {
     });
     input.value = '';
     document.getElementById('new-todo-due').value = '';
+    updateDueButton();
     save(STORE_TODOS, todos);
     renderTodos();
     renderMonth();
@@ -1110,7 +1280,28 @@ const storage = {
     if (e.key === 'Enter' && !e.isComposing) addTodo();
   });
   document.getElementById('new-todo-add').onclick = addTodo;
-  document.getElementById('new-todo-clear-due').onclick = () => { document.getElementById('new-todo-due').value = ''; };
+  // 마감일 버튼 상태 업데이트
+  function updateDueButton() {
+    const dueInput = document.getElementById('new-todo-due');
+    const btn = document.getElementById('new-todo-due-btn');
+    const label = document.getElementById('new-todo-due-label');
+    if (dueInput.value) {
+      const d = new Date(dueInput.value + 'T00:00:00');
+      label.textContent = `${d.getMonth()+1}/${d.getDate()}`;
+      label.style.display = 'inline';
+      btn.classList.add('has-date');
+    } else {
+      label.style.display = 'none';
+      btn.classList.remove('has-date');
+    }
+  }
+  document.getElementById('new-todo-due').addEventListener('change', updateDueButton);
+  // 마감일 버튼 클릭 시 짧게 안내 텍스트 표시 (모바일 + 데스크탑)
+  document.getElementById('new-todo-due-btn').addEventListener('click', () => {
+    const btn = document.getElementById('new-todo-due-btn');
+    btn.classList.add('show-hint');
+    setTimeout(() => btn.classList.remove('show-hint'), 1500);
+  });
 
   document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.onclick = () => {
@@ -1174,34 +1365,30 @@ const storage = {
     categories.forEach(cat => {
       const row = document.createElement('li');
       row.className = 'cat-row';
-      const swatch = document.createElement('label');
+
+      const swatch = document.createElement('span');
       swatch.className = 'cat-swatch';
       swatch.style.background = cat.color;
-      const colorInput = document.createElement('input');
-      colorInput.type = 'color'; colorInput.value = cat.color; colorInput.style.display = 'none';
-      colorInput.onchange = () => {
-        cat.color = colorInput.value;
-        swatch.style.background = colorInput.value;
-        save(STORE_CATS, categories);
-        renderMonth(); renderWeek(); renderTodos();
-      };
-      swatch.appendChild(colorInput);
-      swatch.onclick = () => colorInput.click();
 
-      const nameInput = document.createElement('input');
-      nameInput.className = 'cat-name-input';
-      nameInput.value = cat.name;
-      nameInput.onchange = () => {
-        cat.name = nameInput.value.trim() || cat.name;
-        nameInput.value = cat.name;
-        save(STORE_CATS, categories);
-        renderMonth(); renderWeek();
-      };
+      const name = document.createElement('span');
+      name.className = 'cat-name';
+      name.textContent = cat.name;
 
-      const del = document.createElement('button');
-      del.style.cssText = 'border:none; background:transparent; color: var(--color-text-tertiary); cursor:pointer; padding:4px;';
-      del.innerHTML = '<i class="ti ti-trash"></i>';
-      del.onclick = () => {
+      const actions = document.createElement('div');
+      actions.className = 'cat-actions';
+
+      const editBtn = document.createElement('button');
+      editBtn.className = 'cat-action-btn';
+      editBtn.innerHTML = '<i class="ti ti-pencil"></i>';
+      editBtn.title = '편집';
+      editBtn.onclick = (e) => { e.stopPropagation(); openCategoryEditModal(cat); };
+
+      const delBtn = document.createElement('button');
+      delBtn.className = 'cat-action-btn';
+      delBtn.innerHTML = '<i class="ti ti-trash"></i>';
+      delBtn.title = '삭제';
+      delBtn.onclick = (e) => {
+        e.stopPropagation();
         if (categories.length <= 1) {
           alert('최소 1개의 카테고리는 남아있어야 해요.');
           return;
@@ -1209,25 +1396,210 @@ const storage = {
         openCategoryDeleteModal(cat);
       };
 
-      row.appendChild(swatch); row.appendChild(nameInput); row.appendChild(del);
+      actions.appendChild(editBtn);
+      actions.appendChild(delBtn);
+
+      row.appendChild(swatch);
+      row.appendChild(name);
+      row.appendChild(actions);
       list.appendChild(row);
     });
+  }
+
+  // 카테고리 편집 모달
+  function openCategoryEditModal(cat) {
+    const overlay = document.getElementById('cat-edit-modal-overlay');
+    const nameInput = document.getElementById('cat-edit-name');
+    const colorInput = document.getElementById('cat-edit-color');
+    const swatch = document.getElementById('cat-edit-swatch-label');
+    const colorText = document.getElementById('cat-edit-color-text');
+
+    nameInput.value = cat.name;
+    colorInput.value = cat.color;
+    swatch.style.background = cat.color;
+    colorText.textContent = cat.color.toUpperCase();
+
+    swatch.onclick = () => colorInput.click();
+    colorInput.oninput = () => {
+      swatch.style.background = colorInput.value;
+      colorText.textContent = colorInput.value.toUpperCase();
+    };
+
+    // 모달 열 때 에러 초기화
+    nameInput.classList.remove('error');
+    document.getElementById('cat-edit-name-error').style.display = 'none';
+
+    // 입력 시 에러 해제
+    nameInput.oninput = () => {
+      nameInput.classList.remove('error');
+      document.getElementById('cat-edit-name-error').style.display = 'none';
+    };
+    overlay.style.display = 'flex';
+
+    const saveBtn = document.getElementById('cat-edit-save');
+    const cancelBtn = document.getElementById('cat-edit-cancel');
+
+    const cleanup = () => {
+      overlay.style.display = 'none';
+      nameInput.classList.remove('error');
+      document.getElementById('cat-edit-name-error').style.display = 'none';
+      nameInput.oninput = null;
+      nameInput.onkeydown = null;
+      saveBtn.onclick = null;
+      cancelBtn.onclick = null;
+      overlay.onclick = null;
+    };
+
+    cancelBtn.onclick = cleanup;
+    overlay.onclick = (e) => { if (e.target === overlay) cleanup(); };
+
+    nameInput.onkeydown = (e) => {
+      if (e.key === 'Enter' && !e.isComposing) {
+        e.preventDefault();
+        saveBtn.click();
+      }
+    };
+    saveBtn.onclick = () => {
+      const newName = nameInput.value.trim();
+      const errorEl = document.getElementById('cat-edit-name-error');
+
+      if (!newName) {
+        nameInput.classList.add('error');
+        errorEl.textContent = '이름을 입력하세요';
+        errorEl.style.display = 'block';
+        nameInput.focus();
+        return;
+      }
+
+      // 다른 카테고리와 중복 체크 (자기 자신은 제외)
+      const duplicate = categories.some(c => c.id !== cat.id && c.name.toLowerCase() === newName.toLowerCase());
+      if (duplicate) {
+        nameInput.classList.add('error');
+        errorEl.textContent = '이미 있는 카테고리 이름이에요';
+        errorEl.style.display = 'block';
+        nameInput.focus();
+        return;
+      }
+
+      cat.name = newName;
+      cat.color = colorInput.value;
+      save(STORE_CATS, categories);
+      cleanup();
+      renderCategories();
+      renderMonth();
+      renderWeek();
+      renderTodos();
+    };
   }
 
   document.getElementById('new-cat-name').addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.isComposing) document.getElementById('add-cat-btn').click();
   });
+  // 입력 시 에러 해제
+  document.getElementById('new-cat-name').addEventListener('input', () => {
+    document.getElementById('new-cat-name').classList.remove('error');
+    document.getElementById('new-cat-name-error').style.display = 'none';
+  });
+  // 파스텔 컬러 팔레트
+  const PASTEL_COLORS = ['#FFD9A8', '#FFB3C1', '#A8E6CF', '#A8C8E6'];
+  // 옐로우 / 핑크 / 민트 / 베이지블루
+
+  // 컬러 옵션 렌더링
+  function renderColorOptions() {
+    const container = document.querySelector('#cat-color-popup .cat-color-options');
+    const currentColor = document.getElementById('new-cat-color').value.toUpperCase();
+    container.innerHTML = '';
+    PASTEL_COLORS.forEach(color => {
+      const opt = document.createElement('button');
+      opt.type = 'button';
+      opt.className = 'cat-color-option' + (color === currentColor ? ' selected' : '');
+      opt.style.background = color;
+      opt.onclick = (e) => {
+        e.stopPropagation();
+        selectColor(color);
+        closeColorPopup();
+      };
+      container.appendChild(opt);
+    });
+  }
+
+  function selectColor(color) {
+    document.getElementById('new-cat-color').value = color;
+    document.getElementById('new-cat-color-swatch').style.background = color;
+    renderColorOptions();
+  }
+
+  function openColorPopup() {
+    document.getElementById('cat-color-popup').style.display = 'flex';
+    renderColorOptions();
+  }
+  function closeColorPopup() {
+    document.getElementById('cat-color-popup').style.display = 'none';
+  }
+
+  document.getElementById('new-cat-color-btn').onclick = (e) => {
+    e.stopPropagation();
+    const popup = document.getElementById('cat-color-popup');
+    if (popup.style.display === 'flex') closeColorPopup();
+    else openColorPopup();
+  };
+
+  document.getElementById('cat-color-custom-btn').onclick = (e) => {
+    e.stopPropagation();
+    document.getElementById('new-cat-color').click();
+  };
+
+  document.getElementById('new-cat-color').onchange = () => {
+    selectColor(document.getElementById('new-cat-color').value.toUpperCase());
+    closeColorPopup();
+  };
+
+  // 바깥 클릭 시 팝업 닫기
+  document.addEventListener('click', (e) => {
+    const popup = document.getElementById('cat-color-popup');
+    const btn = document.getElementById('new-cat-color-btn');
+    if (popup.style.display === 'flex' && !popup.contains(e.target) && !btn.contains(e.target)) {
+      closeColorPopup();
+    }
+  });
+
+  // 초기 컬러 표시
+  document.getElementById('new-cat-color-swatch').style.background = '#FFD9A8';
   document.getElementById('add-cat-btn').onclick = () => {
-    const name = document.getElementById('new-cat-name').value.trim();
-    if (!name) return;
+    const nameInput = document.getElementById('new-cat-name');
+    const nameError = document.getElementById('new-cat-name-error');
+    const name = nameInput.value.trim();
+
+    // 빈 이름 체크
+    if (!name) {
+      nameInput.classList.add('error');
+      nameError.textContent = '이름을 입력하세요';
+      nameError.style.display = 'block';
+      nameInput.focus();
+      return;
+    }
+
+    // 중복 이름 체크 (대소문자 무시)
+    const duplicate = categories.some(c => c.name.toLowerCase() === name.toLowerCase());
+    if (duplicate) {
+      nameInput.classList.add('error');
+      nameError.textContent = '이미 있는 카테고리 이름이에요';
+      nameError.style.display = 'block';
+      nameInput.focus();
+      return;
+    }
+
     categories.push({ id: uid(), name, color: document.getElementById('new-cat-color').value });
-    document.getElementById('new-cat-name').value = '';
+    nameInput.value = '';
+    // 다음 카테고리 추가용으로 색 초기화 (첫 번째 파스텔로)
+    selectColor(PASTEL_COLORS[0]);
     save(STORE_CATS, categories);
     renderCategories();
   };
 
   loadAll();
   renderMonth();
+  updateTodayBtn();
 })();
 
 // ==================== PWA Service Worker Registration ====================
