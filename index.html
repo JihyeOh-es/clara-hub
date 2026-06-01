@@ -328,9 +328,9 @@
       .month-cell { min-height: 56px; padding: 3px 3px; }
       .month-event { font-size: 9px; }
       .month-todo, .month-todo span, .month-todo i.ti { font-size: 9px; }
-      .nav-tab { padding: 0 8px; font-size: 12px; height: 30px; gap: 3px; }
-      .nav-tab i { font-size: 13px; }
-      .today-btn, .add-fab { padding: 0 8px; font-size: 12px; height: 30px; }
+      .nav-tab { padding: 0 6px; font-size: 13px; height: 30px; gap: 2px; }
+      .nav-tab i { font-size: 14px; }
+      .today-btn, .add-fab { padding: 0 8px; font-size: 13px; height: 30px; }
     }
   </style>
 </head>
@@ -954,7 +954,6 @@ const storage = {
           chip.innerHTML = `<i class="ti ti-checkbox" style="font-size:10px;"></i><span style="overflow:hidden; text-overflow:ellipsis; min-width:0; white-space:nowrap; font-size:10px;">${t.text}</span>`;
           chip.onclick = (e) => {
             e.stopPropagation();
-            document.querySelector('.nav-tab[data-view="todos"]').click();
           };
           cell.appendChild(chip);
         }
