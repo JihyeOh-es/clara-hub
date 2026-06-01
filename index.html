@@ -335,9 +335,9 @@
       .month-cell { min-height: 56px; padding: 3px 3px; }
       .month-event { font-size: 9px; }
       .month-todo, .month-todo span, .month-todo i.ti { font-size: 9px; }
-      .nav-tab { padding: 0 6px; font-size: 13px; height: 30px; gap: 2px; }
+      .nav-tab { padding: 0 10px; font-size: 13px; height: 32px; gap: 4px; }
       .nav-tab i { font-size: 14px; }
-      .today-btn, .add-fab { padding: 0 8px; font-size: 13px; height: 30px; }
+      .today-btn, .add-fab { padding: 0 10px; font-size: 13px; height: 32px; }
     }
   </style>
 </head>
@@ -408,6 +408,7 @@
       </button>
       <button id="new-todo-add" class="todo-add-btn" title="추가"><i class="ti ti-plus"></i></button>
     </div>
+    <div id="new-todo-error" style="display:none; color: var(--color-text-danger); font-size: 12px; margin-top: -10px; margin-bottom: 10px;">내용을 입력하세요.</div>
     <div style="display: flex; gap: 6px; margin-bottom: 1rem; font-size: 13px; flex-wrap: wrap;">
       <button class="filter-btn active" data-filter="all" style="padding: 4px 12px; font-size: 13px;">전체</button>
       <button class="filter-btn" data-filter="active" style="padding: 4px 12px; font-size: 13px;">진행 중</button>
@@ -1295,8 +1296,16 @@ const storage = {
 
   function addTodo() {
     const input = document.getElementById('new-todo');
+    const errorEl = document.getElementById('new-todo-error');
     const text = input.value.trim();
-    if (!text) return;
+    if (!text) {
+      input.classList.add('error');
+      errorEl.style.display = 'block';
+      input.focus();
+      return;
+    }
+    input.classList.remove('error');
+    errorEl.style.display = 'none';
     todos.unshift({
       id: uid(), text,
       categoryId: document.getElementById('new-todo-cat').value,
@@ -1315,6 +1324,10 @@ const storage = {
   document.getElementById('new-todo').addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.isComposing) addTodo();
   });
+  document.getElementById('new-todo').addEventListener('input', () => {
+  document.getElementById('new-todo').classList.remove('error');
+  document.getElementById('new-todo-error').style.display = 'none';
+});
   document.getElementById('new-todo-add').onclick = addTodo;
   // iOS 한글 조합 유실 방지: 다른 컨트롤 누르기 직전 제목 조합 확정
 ['new-todo-due', 'new-todo-add', 'new-todo-cat'].forEach(id => {
