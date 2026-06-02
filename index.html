@@ -1946,6 +1946,7 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
     const c = (acct.calendars || []).find(x => x.id === calId);
     if (c) { c.selected = checked; save(STORE_GACCOUNTS, gAccounts); }
   }
+  let acctExpanded = {};   // email -> 펼침 여부
   function renderSync() {
     const wrap = document.getElementById('sync-accounts');
     if (!wrap) return;
@@ -1981,13 +1982,26 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
       body.style.cssText = 'padding: 0 12px 12px;';
       const hasList = a.calendars && a.calendars.length > 0;
 
+      const btnRow = document.createElement('div');
+      btnRow.style.cssText = 'display:flex; align-items:center; gap:8px;';
+
       const loadBtn = document.createElement('button');
       loadBtn.style.cssText = 'font-size:13px; padding:6px 12px; display:flex; align-items:center; gap:4px;';
       loadBtn.innerHTML = `<i class="ti ti-refresh" style="font-size:14px;"></i> ${hasList ? '캘린더 새로고침' : '캘린더 불러오기'}`;
       loadBtn.onclick = () => loadCalendars(a.email, loadBtn);
-      body.appendChild(loadBtn);
+      btnRow.appendChild(loadBtn);
 
       if (hasList) {
+        const selCount = a.calendars.filter(c => c.selected).length;
+        const toggleBtn = document.createElement('button');
+        toggleBtn.style.cssText = 'font-size:13px; padding:6px 10px; display:flex; align-items:center; gap:4px; color:var(--color-text-secondary);';
+        toggleBtn.innerHTML = `캘린더 ${a.calendars.length}개 (${selCount} 선택) <i class="ti ti-chevron-${acctExpanded[a.email] ? 'up' : 'down'}" style="font-size:14px;"></i>`;
+        toggleBtn.onclick = () => { acctExpanded[a.email] = !acctExpanded[a.email]; renderSync(); };
+        btnRow.appendChild(toggleBtn);
+      }
+      body.appendChild(btnRow);
+
+      if (hasList && acctExpanded[a.email]) {
         const listWrap = document.createElement('div');
         listWrap.style.cssText = 'display:flex; flex-direction:column; gap:4px; margin-top:10px;';
         a.calendars.forEach(c => {
