@@ -1675,11 +1675,14 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
   let gAccounts = [];
   let gEvents = [];   // 구글에서 가져온 일정 (메모리, localStorage 캐시)
   try { const r = storage.get('planner:gcalEvents'); gEvents = r ? JSON.parse(r.value) : []; } catch(e) { gEvents = []; }
-  const GCAL_PALETTE = ['#7F77DD','#D4537E','#EF9F27','#1D9E75','#378ADD','#C2557A','#5BA89B','#B47318','#8E63C7','#3FA34D','#D9694E','#5D7FBF'];
-  function nextCatColor() {
+  const GCAL_PALETTE_BOLD = ['#5D54C2','#C2185B','#E08600','#0E8A5F','#1565C0','#7B1FA2','#00897B','#C62828','#3949AB','#2E7D32','#D84315','#00838F']; // 개인: 진한 계열
+  const GCAL_PALETTE_PASTEL = ['#A8A4E6','#F0A6C2','#FFD18C','#9FE0C5','#A6CCF0','#D5B8E8','#9FD8D0','#F2B5A8','#B9BEE8','#B9E0BB','#F5C4A8','#A8D8E0']; // 회사: 파스텔 계열
+  function paletteFor(email) { return /@devsisters\.com$/i.test(email) ? GCAL_PALETTE_PASTEL : GCAL_PALETTE_BOLD; }
+  function nextCatColor(email) {
+    const palette = paletteFor(email);
     const used = categories.map(c => c.color.toUpperCase());
-    const free = GCAL_PALETTE.find(c => !used.includes(c.toUpperCase()));
-    return free || GCAL_PALETTE[categories.length % GCAL_PALETTE.length];
+    const free = palette.find(c => !used.includes(c.toUpperCase()));
+    return free || palette[categories.length % palette.length];
   }
   // 구글 캘린더 id -> 플래너 카테고리 id 매핑 보장 (없으면 태그 생성)
   function ensureCatForCalendar(email, cal) {
@@ -1691,7 +1694,7 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
       // 기존 태그를 키로 찾았고 사용자가 이름을 바꿨을 수 있으니, 이름은 건드리지 않음 (아래 신규 생성에만 tagName 사용)
     }
     if (!cat) {
-      cat = { id: uid(), name: tagName, color: nextCatColor(), gcalKey: email + '::' + cal.id };
+      cat = { id: uid(), name: tagName, color: nextCatColor(email), gcalKey: email + '::' + cal.id };
       categories.push(cat);
     }
     return cat.id;
@@ -1824,6 +1827,7 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
         const token = await getToken(a.email);
         for (const cal of selected) {
           const catId = ensureCatForCalendar(a.email, cal);
+          { const _c = categories.find(c => c.gcalKey === a.email + '::' + cal.id); if (_c) { const _pal = paletteFor(a.email); if (!_pal.map(x=>x.toUpperCase()).includes((_c.color||'').toUpperCase())) { _c.color = nextCatColor(a.email); } } }
           const items = await fetchEventsForCalendar(token, cal.id);
           items.forEach(it => collected.push(mapGEvent(it, a.email, cal.id, catId)));
         }
