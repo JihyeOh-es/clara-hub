@@ -277,6 +277,14 @@
     .todo-delete { border: none; background: transparent; color: var(--color-text-tertiary); cursor: pointer; padding: 4px; font-size: 16px; opacity: 0.5; }
     .todo-item:hover .todo-delete { opacity: 1; }
     .filter-btn.active { background: #EFEDFA; border-color: #D9D4F0; color: #5D54C2; font-weight: 500; }
+    /* 공통 select 스타일 (클라라 결 맞춤) */
+    select.cl-select {
+      appearance: none; -webkit-appearance: none; -moz-appearance: none;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%237F77DD' d='M0 0l5 6 5-6z'/></svg>");
+      background-repeat: no-repeat; background-position: right 12px center;
+      padding-right: 30px; cursor: pointer;
+    }
+    select.cl-select:hover { background-color: var(--color-background-secondary); }
     /* Category Color Picker */
     .cat-color-btn { display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); cursor: pointer; box-shadow: var(--shadow-sm); flex-shrink: 0; color: var(--color-text-tertiary); }
     .cat-color-btn:hover { background: var(--color-background-secondary); }
@@ -402,7 +410,7 @@
   <div id="view-todos" class="view" style="display: none;">
     <div class="todo-input-row">
       <input type="text" id="new-todo" placeholder="할 일 입력" />
-      <select id="new-todo-cat"></select>
+      <select id="new-todo-cat" class="cl-select"></select>
       <button id="new-todo-due-btn" class="todo-due-btn" data-tooltip="마감일 선택">
         <i class="ti ti-calendar"></i>
         <span id="new-todo-due-label" style="display:none;"></span>
@@ -450,8 +458,8 @@
       <button id="connect-google-btn" class="add-fab"><i class="ti ti-plus"></i><span>구글 계정 연결</span></button>
       <button id="sync-now-btn" class="today-btn"><i class="ti ti-refresh"></i> 일정 가져오기</button>
     </div>
-    <div id="sync-accounts" style="display:flex; flex-direction:column; gap:6px;"></div>
-    <div id="sync-hidden" style="margin-top: 1.5rem;"></div>
+    <div id="sync-accounts" style="display:flex; flex-direction:column; gap:12px;"></div>
+    <div id="sync-hidden" style="margin-top: 12px;"></div>
   </div>
   </div>
   <div id="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 100; align-items: center; justify-content: center; padding: 1rem;">
@@ -462,7 +470,7 @@
           <input type="text" id="ev-title" placeholder="제목" style="width: 100%;" />
           <div id="ev-title-error" style="display:none; color: var(--color-text-danger); font-size: 12px; margin-top: 4px;">제목을 입력하세요</div>
         </div>
-        <select id="ev-cat"></select>
+        <select id="ev-cat" class="cl-select"></select>
         <input type="date" id="ev-date" />
         <div style="display: flex; gap: 8px; align-items: center;">
           <div id="ev-start-wrap" style="flex: 1;"></div>
@@ -490,7 +498,7 @@
         </div>
         <div style="display: flex; gap: 8px; align-items: center;">
           <label style="font-size: 13px; color: var(--color-text-secondary); min-width: 52px;">카테고리</label>
-          <select id="td-cat" style="flex: 1;"></select>
+          <select id="td-cat" class="cl-select" style="flex: 1;"></select>
         </div>
         <div style="display: flex; gap: 8px; align-items: center;">
           <label style="font-size: 13px; color: var(--color-text-secondary); min-width: 52px;">마감</label>
@@ -526,7 +534,7 @@
         <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer;">
           <input type="radio" name="cat-delete-action" value="move" checked style="margin: 0;">
           <span>다른 카테고리로 이동:</span>
-          <select id="cat-delete-target" style="flex: 1;"></select>
+          <select id="cat-delete-target" class="cl-select" style="flex: 1;"></select>
         </label>
         <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer;">
           <input type="radio" name="cat-delete-action" value="delete" style="margin: 0;">
@@ -725,7 +733,8 @@ const storage = {
   }
   function save(key, val) { storage.set(key, JSON.stringify(val)); }
   function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
-  function getCat(id) { return categories.find(c => c.id === id) || categories[0]; }
+  const NO_CAT = { id: '', name: '미분류', color: '#B0AEA3' };
+  function getCat(id) { if (!id) return NO_CAT; return categories.find(c => c.id === id) || NO_CAT; }
   function acctPrefix(email) { return /@devsisters\.com$/i.test(email) ? '[회사] ' : ''; }
   function hexToRgba(hex, alpha) {
     const h = hex.replace('#', '');
@@ -1170,8 +1179,14 @@ const storage = {
   });
   applyWeekViewMode();
 
-  function populateCatSelect(selectEl, selectedId) {
+  function populateCatSelect(selectEl, selectedId, allowNone) {
     selectEl.innerHTML = '';
+    if (allowNone) {
+      const opt = document.createElement('option');
+      opt.value = ''; opt.textContent = '선택 안 함';
+      if (!selectedId) opt.selected = true;
+      selectEl.appendChild(opt);
+    }
     categories.forEach(c => {
       const opt = document.createElement('option');
       opt.value = c.id; opt.textContent = c.name;
@@ -1252,7 +1267,7 @@ const storage = {
   };
 
   function renderTodos() {
-    populateCatSelect(document.getElementById('new-todo-cat'), categories[0].id);
+    populateCatSelect(document.getElementById('new-todo-cat'), '', true);
     const list = document.getElementById('todo-list');
     list.innerHTML = '';
 
@@ -1422,7 +1437,7 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
 
   function openTodoModal(t) {
     editingTodoId = t.id;
-    populateCatSelect(document.getElementById('td-cat'), t.categoryId);
+    populateCatSelect(document.getElementById('td-cat'), t.categoryId, true);
     document.getElementById('td-text').value = t.text;
     document.getElementById('td-due').value = t.due || '';
     document.getElementById('todo-modal-overlay').style.display = 'flex';
