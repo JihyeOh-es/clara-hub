@@ -1727,6 +1727,36 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
     save(STORE_GACCOUNTS, gAccounts);
     renderSync();
   }
+  async function fetchCalendarList(token) {
+    const res = await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList', { headers: { Authorization: 'Bearer ' + token } });
+    if (!res.ok) throw new Error('calendarList ' + res.status);
+    const data = await res.json();
+    return (data.items || []).map(c => ({ id: c.id, summary: c.summaryOverride || c.summary, bgColor: c.backgroundColor || '#7F77DD' }));
+  }
+  async function loadCalendars(email, btn) {
+    const acct = gAccounts.find(a => a.email === email);
+    if (!acct) return;
+    const orig = btn ? btn.innerHTML : '';
+    if (btn) { btn.disabled = true; btn.innerHTML = '불러오는 중...'; }
+    try {
+      const token = await getToken(email);
+      const list = await fetchCalendarList(token);
+      const prev = {};
+      (acct.calendars || []).forEach(c => { prev[c.id] = c.selected; });
+      acct.calendars = list.map(c => ({ ...c, selected: prev[c.id] || false }));
+      save(STORE_GACCOUNTS, gAccounts);
+      renderSync();
+    } catch (e) {
+      alert('캘린더 불러오기 실패: ' + e.message);
+      if (btn) { btn.disabled = false; btn.innerHTML = orig; }
+    }
+  }
+  function toggleCalendar(email, calId, checked) {
+    const acct = gAccounts.find(a => a.email === email);
+    if (!acct) return;
+    const c = (acct.calendars || []).find(x => x.id === calId);
+    if (c) { c.selected = checked; save(STORE_GACCOUNTS, gAccounts); }
+  }
   function renderSync() {
     const wrap = document.getElementById('sync-accounts');
     if (!wrap) return;
@@ -1740,20 +1770,57 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
     }
     gAccounts.forEach(a => {
       const connected = !!gTokens[a.email];
-      const row = document.createElement('div');
-      row.className = 'cat-row';
-      row.innerHTML = `<i class="ti ti-user-circle" style="font-size:20px; color: var(--color-text-tertiary);"></i>
+      const card = document.createElement('div');
+      card.style.cssText = 'border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); background: var(--color-background-primary); box-shadow: var(--shadow-sm); overflow: hidden;';
+
+      const header = document.createElement('div');
+      header.style.cssText = 'display:flex; align-items:center; gap:12px; padding:10px 12px;';
+      header.innerHTML = `<i class="ti ti-user-circle" style="font-size:20px; color: var(--color-text-tertiary);"></i>
         <div style="flex:1; min-width:0;">
           <div style="font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${a.email}</div>
-          <div style="font-size:11px; color:${connected ? 'var(--color-text-info)' : 'var(--color-text-tertiary)'};">${connected ? '연결됨' : '재연결 필요 (상단 버튼)'}</div>
+          <div style="font-size:11px; color:${connected ? 'var(--color-text-info)' : 'var(--color-text-tertiary)'};">${connected ? '연결됨' : '토큰 만료 (불러오기 시 재로그인)'}</div>
         </div>`;
       const del = document.createElement('button');
       del.className = 'cat-action-btn';
       del.innerHTML = '<i class="ti ti-trash"></i>';
       del.title = '연결 해제';
       del.onclick = () => disconnectAccount(a.email);
-      row.appendChild(del);
-      wrap.appendChild(row);
+      header.appendChild(del);
+      card.appendChild(header);
+
+      const body = document.createElement('div');
+      body.style.cssText = 'padding: 0 12px 12px;';
+      const hasList = a.calendars && a.calendars.length > 0;
+
+      const loadBtn = document.createElement('button');
+      loadBtn.style.cssText = 'font-size:13px; padding:6px 12px; display:flex; align-items:center; gap:4px;';
+      loadBtn.innerHTML = `<i class="ti ti-refresh" style="font-size:14px;"></i> ${hasList ? '캘린더 새로고침' : '캘린더 불러오기'}`;
+      loadBtn.onclick = () => loadCalendars(a.email, loadBtn);
+      body.appendChild(loadBtn);
+
+      if (hasList) {
+        const listWrap = document.createElement('div');
+        listWrap.style.cssText = 'display:flex; flex-direction:column; gap:4px; margin-top:10px;';
+        a.calendars.forEach(c => {
+          const label = document.createElement('label');
+          label.style.cssText = 'display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:6px; cursor:pointer; font-size:13px;';
+          const cb = document.createElement('input');
+          cb.type = 'checkbox'; cb.checked = !!c.selected;
+          cb.style.cssText = 'margin:0; flex-shrink:0;';
+          cb.onchange = () => toggleCalendar(a.email, c.id, cb.checked);
+          const swatch = document.createElement('span');
+          swatch.style.cssText = `width:12px; height:12px; border-radius:50%; flex-shrink:0; background:${c.bgColor};`;
+          const name = document.createElement('span');
+          name.textContent = c.summary;
+          name.style.cssText = 'overflow:hidden; text-overflow:ellipsis; white-space:nowrap;';
+          label.appendChild(cb); label.appendChild(swatch); label.appendChild(name);
+          listWrap.appendChild(label);
+        });
+        body.appendChild(listWrap);
+      }
+
+      card.appendChild(body);
+      wrap.appendChild(card);
     });
   }
   { const b = document.getElementById('connect-google-btn'); if (b) b.onclick = connectAccount; }
