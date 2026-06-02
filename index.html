@@ -938,8 +938,7 @@ const storage = {
     return { getValue: () => value, setValue: (v) => { value = v || ''; updateTrigger(); } };
   }
 
-  const newTodoCatPicker = createCatPicker(document.getElementById('new-todo-cat-wrap'), { allowNone: true });
-  const editTodoCatPicker = createCatPicker(document.getElementById('td-cat-wrap'), { allowNone: true });
+  let newTodoCatPicker = null, editTodoCatPicker = null;
   const startPicker = createTimePicker(document.getElementById('ev-start-wrap'), '시작 시간');
   const endPicker = createTimePicker(document.getElementById('ev-end-wrap'), '종료 시간');
 
@@ -2098,6 +2097,8 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
   { const b = document.getElementById('sync-now-btn'); if (b) b.onclick = () => syncAllGoogle(b); }
 
   loadAll();
+  newTodoCatPicker = createCatPicker(document.getElementById('new-todo-cat-wrap'), { allowNone: true });
+  editTodoCatPicker = createCatPicker(document.getElementById('td-cat-wrap'), { allowNone: true });
   renderMonth();
   updateTodayBtn();
 })();
