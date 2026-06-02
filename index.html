@@ -451,6 +451,7 @@
       <button id="sync-now-btn" class="today-btn"><i class="ti ti-refresh"></i> 일정 가져오기</button>
     </div>
     <div id="sync-accounts" style="display:flex; flex-direction:column; gap:6px;"></div>
+    <div id="sync-hidden" style="margin-top: 1.5rem;"></div>
   </div>
   </div>
   <div id="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 100; align-items: center; justify-content: center; padding: 1rem;">
@@ -914,7 +915,7 @@ const storage = {
       document.querySelectorAll('.view').forEach(v => v.style.display = 'none');
       document.getElementById('view-' + tab.dataset.view).style.display = 'block';
       if (tab.dataset.view === 'categories') renderCategories();
-      if (tab.dataset.view === 'sync') renderSync();
+      if (tab.dataset.view === 'sync') { renderSync(); renderSyncHidden(); }
       if (tab.dataset.view === 'todos') renderTodos();
       if (tab.dataset.view === 'month') renderMonth();
       if (tab.dataset.view === 'week') renderWeek();
@@ -1680,8 +1681,45 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
   let gAccounts = [];
   let gEvents = [];   // 구글에서 가져온 일정 (메모리, localStorage 캐시)
   let gHidden = [];   // 숨긴 구글 일정 id 목록
+  let gEventsCache = {};   // id -> {title, date} (숨긴 일정 제목 표시용)
+  try { const r = storage.get('planner:gcalCache'); gEventsCache = r ? JSON.parse(r.value) : {}; } catch(e) { gEventsCache = {}; }
   try { const r = storage.get('planner:gcalHidden'); gHidden = r ? JSON.parse(r.value) : []; } catch(e) { gHidden = []; }
   function hideGEvent(id) { if (!gHidden.includes(id)) { gHidden.push(id); save('planner:gcalHidden', gHidden); } gEvents = gEvents.filter(e => e.id !== id); save('planner:gcalEvents', gEvents); renderMonth(); renderWeek(); }
+  function unhideGEvent(id) { gHidden = gHidden.filter(x => x !== id); save('planner:gcalHidden', gHidden); renderSyncHidden(); }
+  function unhideAll() { gHidden = []; save('planner:gcalHidden', gHidden); renderSyncHidden(); }
+  function renderSyncHidden() {
+    const wrap = document.getElementById('sync-hidden');
+    if (!wrap) return;
+    wrap.innerHTML = '';
+    if (gHidden.length === 0) return;
+    const head = document.createElement('div');
+    head.style.cssText = 'display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;';
+    head.innerHTML = `<h4 style="font-size:13px; color:var(--color-text-secondary);">숨긴 일정 ${gHidden.length}개</h4>`;
+    const allBtn = document.createElement('button');
+    allBtn.style.cssText = 'font-size:12px; padding:4px 10px;';
+    allBtn.textContent = '모두 복구';
+    allBtn.onclick = unhideAll;
+    head.appendChild(allBtn);
+    wrap.appendChild(head);
+
+    const list = document.createElement('div');
+    list.style.cssText = 'display:flex; flex-direction:column; gap:4px;';
+    gHidden.forEach(id => {
+      const cached = gEventsCache[id];
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex; align-items:center; gap:8px; padding:6px 10px; background:var(--color-background-secondary); border-radius:6px; font-size:13px;';
+      const name = document.createElement('span');
+      name.style.cssText = 'flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--color-text-secondary);';
+      name.textContent = cached ? `${cached.title}${cached.date ? ' · ' + cached.date : ''}` : '(동기화하면 제목 표시)';
+      const btn = document.createElement('button');
+      btn.style.cssText = 'font-size:12px; padding:3px 10px; flex-shrink:0;';
+      btn.textContent = '복구';
+      btn.onclick = () => unhideGEvent(id);
+      row.appendChild(name); row.appendChild(btn);
+      list.appendChild(row);
+    });
+    wrap.appendChild(list);
+  }
   try { const r = storage.get('planner:gcalEvents'); gEvents = r ? JSON.parse(r.value) : []; } catch(e) { gEvents = []; }
   const GCAL_PALETTE_BOLD = ['#5D54C2','#C2185B','#E08600','#0E8A5F','#1565C0','#7B1FA2','#00897B','#C62828','#3949AB','#2E7D32','#D84315','#00838F']; // 개인: 진한 계열
   const GCAL_PALETTE_PASTEL = ['#A8A4E6','#F0A6C2','#FFD18C','#9FE0C5','#A6CCF0','#D5B8E8','#9FD8D0','#F2B5A8','#B9BEE8','#B9E0BB','#F5C4A8','#A8D8E0']; // 회사: 파스텔 계열
@@ -1841,10 +1879,12 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
         }
       }
       gEvents = collected.filter(e => !gHidden.includes(e.id));
+      collected.forEach(e => { gEventsCache[e.id] = { title: e.title, date: e.date }; });
+      save('planner:gcalCache', gEventsCache);
       save(STORE_CATS, categories);
       save('planner:gcalEvents', gEvents);
       save('planner:gcalSyncedAt', String(Date.now()));
-      renderSync(); renderMonth(); renderWeek();
+      renderSync(); renderSyncHidden(); renderMonth(); renderWeek();;
       alert('동기화 완료: 일정 ' + gEvents.length + '개');
     } catch (e) {
       alert('동기화 실패: ' + e.message);
