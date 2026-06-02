@@ -1754,7 +1754,20 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
         const row = document.createElement('div');
         row.style.cssText = 'display:flex; align-items:center; gap:8px; padding:6px 10px; background:var(--color-background-secondary); border-radius:6px; font-size:13px;';
         const name = document.createElement('span');
-        name.style.cssText = 'flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; wh
+        name.style.cssText = 'flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--color-text-secondary);';
+        name.textContent = cached ? `${cached.title}${cached.date ? ' · ' + cached.date : ''}` : '(동기화하면 제목 표시)';
+        const btn = document.createElement('button');
+        btn.style.cssText = 'font-size:12px; padding:3px 10px; flex-shrink:0;';
+        btn.textContent = '복구';
+        btn.onclick = () => unhideGEvent(id);
+        row.appendChild(name); row.appendChild(btn);
+        body.appendChild(row);
+      });
+      card.appendChild(body);
+    }
+    wrap.appendChild(card);
+  }
+
   try { const r = storage.get('planner:gcalEvents'); gEvents = r ? JSON.parse(r.value) : []; } catch(e) { gEvents = []; }
   const GCAL_PALETTE_BOLD = ['#5D54C2','#C2185B','#E08600','#0E8A5F','#1565C0','#7B1FA2','#00897B','#C62828','#3949AB','#2E7D32','#D84315','#00838F']; // 개인: 진한 계열
   const GCAL_PALETTE_PASTEL = ['#A8A4E6','#F0A6C2','#FFD18C','#9FE0C5','#A6CCF0','#D5B8E8','#9FD8D0','#F2B5A8','#B9BEE8','#B9E0BB','#F5C4A8','#A8D8E0']; // 회사: 파스텔 계열
