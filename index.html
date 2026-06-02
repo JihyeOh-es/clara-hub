@@ -1707,42 +1707,54 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
   let gEventsCache = {};   // id -> {title, date} (숨긴 일정 제목 표시용)
   try { const r = storage.get('planner:gcalCache'); gEventsCache = r ? JSON.parse(r.value) : {}; } catch(e) { gEventsCache = {}; }
   try { const r = storage.get('planner:gcalHidden'); gHidden = r ? JSON.parse(r.value) : []; } catch(e) { gHidden = []; }
-  function hideGEvent(id) { if (!gHidden.includes(id)) { gHidden.push(id); save('planner:gcalHidden', gHidden); } gEvents = gEvents.filter(e => e.id !== id); save('planner:gcalEvents', gEvents); renderMonth(); renderWeek(); }
+  function hideGEvent(id) {
+    if (!gHidden.includes(id)) { gHidden.push(id); save('planner:gcalHidden', gHidden); }
+    gEvents = gEvents.filter(e => e.id !== id);
+    save('planner:gcalEvents', gEvents);
+    renderMonth(); renderWeek();
+    if (selectedMonthDate) {
+      const d = new Date(selectedMonthDate + 'T00:00:00');
+      const de = events.concat(gEvents).filter(e => e.date === selectedMonthDate).sort((a,b) => (a.start||'').localeCompare(b.start||''));
+      const dt = todos.filter(t => t.due === selectedMonthDate);
+      showDayDetail(d, de, dt);
+    }
+  }
   function unhideGEvent(id) { gHidden = gHidden.filter(x => x !== id); save('planner:gcalHidden', gHidden); renderSyncHidden(); }
   function unhideAll() { gHidden = []; save('planner:gcalHidden', gHidden); renderSyncHidden(); }
+  let hiddenExpanded = false;
   function renderSyncHidden() {
     const wrap = document.getElementById('sync-hidden');
     if (!wrap) return;
     wrap.innerHTML = '';
     if (gHidden.length === 0) return;
-    const head = document.createElement('div');
-    head.style.cssText = 'display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;';
-    head.innerHTML = `<h4 style="font-size:13px; color:var(--color-text-secondary);">숨긴 일정 ${gHidden.length}개</h4>`;
-    const allBtn = document.createElement('button');
-    allBtn.style.cssText = 'font-size:12px; padding:4px 10px;';
-    allBtn.textContent = '모두 복구';
-    allBtn.onclick = unhideAll;
-    head.appendChild(allBtn);
-    wrap.appendChild(head);
 
-    const list = document.createElement('div');
-    list.style.cssText = 'display:flex; flex-direction:column; gap:4px;';
-    gHidden.forEach(id => {
-      const cached = gEventsCache[id];
-      const row = document.createElement('div');
-      row.style.cssText = 'display:flex; align-items:center; gap:8px; padding:6px 10px; background:var(--color-background-secondary); border-radius:6px; font-size:13px;';
-      const name = document.createElement('span');
-      name.style.cssText = 'flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--color-text-secondary);';
-      name.textContent = cached ? `${cached.title}${cached.date ? ' · ' + cached.date : ''}` : '(동기화하면 제목 표시)';
-      const btn = document.createElement('button');
-      btn.style.cssText = 'font-size:12px; padding:3px 10px; flex-shrink:0;';
-      btn.textContent = '복구';
-      btn.onclick = () => unhideGEvent(id);
-      row.appendChild(name); row.appendChild(btn);
-      list.appendChild(row);
-    });
-    wrap.appendChild(list);
-  }
+    const card = document.createElement('div');
+    card.style.cssText = 'border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); background: var(--color-background-primary); box-shadow: var(--shadow-sm); overflow: hidden;';
+
+    const header = document.createElement('button');
+    header.style.cssText = 'width:100%; display:flex; align-items:center; gap:8px; padding:12px; background:transparent; border:none; border-radius:0; box-shadow:none; cursor:pointer; text-align:left;';
+    header.innerHTML = `<i class="ti ti-eye-off" style="font-size:16px; color:var(--color-text-tertiary);"></i>
+      <span style="flex:1; font-size:14px; font-weight:500; color:var(--color-text-secondary);">숨긴 일정 ${gHidden.length}개</span>
+      <i class="ti ti-chevron-${hiddenExpanded ? 'up' : 'down'}" style="font-size:16px; color:var(--color-text-tertiary);"></i>`;
+    header.onclick = () => { hiddenExpanded = !hiddenExpanded; renderSyncHidden(); };
+    card.appendChild(header);
+
+    if (hiddenExpanded) {
+      const body = document.createElement('div');
+      body.style.cssText = 'padding: 0 12px 12px; display:flex; flex-direction:column; gap:4px;';
+
+      const allBtn = document.createElement('button');
+      allBtn.style.cssText = 'align-self:flex-end; font-size:12px; padding:4px 10px; margin-bottom:4px;';
+      allBtn.textContent = '모두 복구';
+      allBtn.onclick = (e) => { e.stopPropagation(); unhideAll(); };
+      body.appendChild(allBtn);
+
+      gHidden.forEach(id => {
+        const cached = gEventsCache[id];
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex; align-items:center; gap:8px; padding:6px 10px; background:var(--color-background-secondary); border-radius:6px; font-size:13px;';
+        const name = document.createElement('span');
+        name.style.cssText = 'flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; wh
   try { const r = storage.get('planner:gcalEvents'); gEvents = r ? JSON.parse(r.value) : []; } catch(e) { gEvents = []; }
   const GCAL_PALETTE_BOLD = ['#5D54C2','#C2185B','#E08600','#0E8A5F','#1565C0','#7B1FA2','#00897B','#C62828','#3949AB','#2E7D32','#D84315','#00838F']; // 개인: 진한 계열
   const GCAL_PALETTE_PASTEL = ['#A8A4E6','#F0A6C2','#FFD18C','#9FE0C5','#A6CCF0','#D5B8E8','#9FD8D0','#F2B5A8','#B9BEE8','#B9E0BB','#F5C4A8','#A8D8E0']; // 회사: 파스텔 계열
@@ -1907,10 +1919,10 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
       save(STORE_CATS, categories);
       save('planner:gcalEvents', gEvents);
       save('planner:gcalSyncedAt', String(Date.now()));
-      renderSync(); renderSyncHidden(); renderMonth(); renderWeek();;
-      customAlert('동기화 실패: ' + e.message);
+      renderSync(); renderSyncHidden(); renderMonth(); renderWeek();
+      customAlert('동기화 완료: 일정 ' + gEvents.length + '개');
     } catch (e) {
-      alert('동기화 실패: ' + e.message);
+      customAlert('동기화 실패: ' + e.message);
     } finally {
       if (btn) { btn.disabled = false; btn.innerHTML = orig; }
     }
