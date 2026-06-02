@@ -446,7 +446,10 @@
 
   <div id="view-sync" class="view" style="display: none;">
     <p style="font-size:13px; color: var(--color-text-secondary); margin: 0 0 1rem; line-height:1.5;">구글 계정을 연결하면 캘린더 일정을 읽기 전용으로 가져옵니다.</p>
-    <button id="connect-google-btn" class="add-fab" style="margin-bottom: 1.25rem;"><i class="ti ti-plus"></i><span>구글 계정 연결</span></button>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom: 1.25rem;">
+      <button id="connect-google-btn" class="add-fab"><i class="ti ti-plus"></i><span>구글 계정 연결</span></button>
+      <button id="sync-now-btn" class="today-btn"><i class="ti ti-refresh"></i> 일정 가져오기</button>
+    </div>
     <div id="sync-accounts" style="display:flex; flex-direction:column; gap:6px;"></div>
   </div>
   </div>
@@ -698,6 +701,7 @@ const storage = {
   function save(key, val) { storage.set(key, JSON.stringify(val)); }
   function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
   function getCat(id) { return categories.find(c => c.id === id) || categories[0]; }
+  function acctPrefix(email) { return /@devsisters\.com$/i.test(email) ? '[회사] ' : ''; }
   function hexToRgba(hex, alpha) {
     const h = hex.replace('#', '');
     return `rgba(${parseInt(h.slice(0,2),16)},${parseInt(h.slice(2,4),16)},${parseInt(h.slice(4,6),16)},${alpha})`;
@@ -937,7 +941,7 @@ const storage = {
       const dateStr = fmtDate(d);
       const isCurMonth = d.getMonth() === month;
       const dayOfWeek = d.getDay();
-      const dayEvents = events.filter(e => e.date === dateStr).sort((a,b) => (a.start||'').localeCompare(b.start||''));
+      const dayEvents = events.concat(gEvents).filter(e => e.date === dateStr).sort((a,b) => (a.start||'').localeCompare(b.start||''));
       const dayTodos = todos.filter(t => t.due === dateStr);
 
       const cell = document.createElement('div');
@@ -1074,7 +1078,7 @@ const storage = {
     for (let i = 0; i < 7; i++) {
       const d = new Date(baseStart); d.setDate(d.getDate() + i);
       const dateStr = fmtDate(d);
-      const dayEvents = events.filter(e => e.date === dateStr).sort((a,b) => (a.start||'').localeCompare(b.start||''));
+      const dayEvents = events.concat(gEvents).filter(e => e.date === dateStr).sort((a,b) => (a.start||'').localeCompare(b.start||''));
       const dayTodos = todos.filter(t => t.due === dateStr);
 
       const block = document.createElement('div');
@@ -1669,6 +1673,28 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
   };
   // ==================== Google Calendar Sync ====================
   let gAccounts = [];
+  let gEvents = [];   // 구글에서 가져온 일정 (메모리, localStorage 캐시)
+  try { const r = storage.get('planner:gcalEvents'); gEvents = r ? JSON.parse(r.value) : []; } catch(e) { gEvents = []; }
+  const GCAL_PALETTE = ['#7F77DD','#D4537E','#EF9F27','#1D9E75','#378ADD','#C2557A','#5BA89B','#B47318','#8E63C7','#3FA34D','#D9694E','#5D7FBF'];
+  function nextCatColor() {
+    const used = categories.map(c => c.color.toUpperCase());
+    const free = GCAL_PALETTE.find(c => !used.includes(c.toUpperCase()));
+    return free || GCAL_PALETTE[categories.length % GCAL_PALETTE.length];
+  }
+  // 구글 캘린더 id -> 플래너 카테고리 id 매핑 보장 (없으면 태그 생성)
+  function ensureCatForCalendar(email, cal) {
+    const tagName = acctPrefix(email) + cal.summary;
+    let cat = categories.find(c => c.gcalKey === email + '::' + cal.id);
+    if (!cat) {
+      cat = categories.find(c => c.name === tagName && !c.gcalKey);
+      if (cat) { cat.gcalKey = email + '::' + cal.id; }
+    }
+    if (!cat) {
+      cat = { id: uid(), name: tagName, color: nextCatColor(), gcalKey: email + '::' + cal.id };
+      categories.push(cat);
+    }
+    return cat.id;
+  }
   const gTokens = {};            // email -> {token, expiresAt} (메모리만, 새로고침 시 사라짐)
   let gTokenClient = null, gSettle = null;
   try { const r = storage.get(STORE_GACCOUNTS); gAccounts = r ? JSON.parse(r.value) : []; } catch(e) { gAccounts = []; }
@@ -1751,6 +1777,68 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
       if (btn) { btn.disabled = false; btn.innerHTML = orig; }
     }
   }
+  async function fetchEventsForCalendar(token, calId) {
+    const timeMin = new Date(); timeMin.setMonth(timeMin.getMonth() - 1); timeMin.setHours(0,0,0,0);
+    const timeMax = new Date(); timeMax.setMonth(timeMax.getMonth() + 3); timeMax.setHours(23,59,59,0);
+    const params = new URLSearchParams({
+      timeMin: timeMin.toISOString(), timeMax: timeMax.toISOString(),
+      singleEvents: 'true', orderBy: 'startTime', maxResults: '2500'
+    });
+    const url = 'https://www.googleapis.com/calendar/v3/calendars/' + encodeURIComponent(calId) + '/events?' + params;
+    const res = await fetch(url, { headers: { Authorization: 'Bearer ' + token } });
+    if (!res.ok) throw new Error('events ' + res.status);
+    const data = await res.json();
+    return data.items || [];
+  }
+  function mapGEvent(item, email, calId, catId) {
+    const isAllDay = !!(item.start && item.start.date);
+    let date, start = '', end = '';
+    if (isAllDay) {
+      date = item.start.date;
+    } else {
+      const s = new Date(item.start.dateTime);
+      const e = item.end && item.end.dateTime ? new Date(item.end.dateTime) : null;
+      date = fmtDate(s);
+      start = String(s.getHours()).padStart(2,'0') + ':' + String(s.getMinutes()).padStart(2,'0');
+      if (e) end = String(e.getHours()).padStart(2,'0') + ':' + String(e.getMinutes()).padStart(2,'0');
+    }
+    return {
+      id: 'g_' + email + '_' + item.id,
+      gcal: true,
+      title: item.summary || '(제목 없음)',
+      categoryId: catId,
+      date, start, end,
+      place: item.location || '',
+      memo: item.description || ''
+    };
+  }
+  async function syncAllGoogle(btn) {
+    const orig = btn ? btn.innerHTML : '';
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader"></i> 가져오는 중...'; }
+    try {
+      const collected = [];
+      for (const a of gAccounts) {
+        const selected = (a.calendars || []).filter(c => c.selected);
+        if (selected.length === 0) continue;
+        const token = await getToken(a.email);
+        for (const cal of selected) {
+          const catId = ensureCatForCalendar(a.email, cal);
+          const items = await fetchEventsForCalendar(token, cal.id);
+          items.forEach(it => collected.push(mapGEvent(it, a.email, cal.id, catId)));
+        }
+      }
+      gEvents = collected;
+      save(STORE_CATS, categories);
+      save('planner:gcalEvents', gEvents);
+      save('planner:gcalSyncedAt', String(Date.now()));
+      renderSync(); renderMonth(); renderWeek();
+      alert('동기화 완료: 일정 ' + gEvents.length + '개');
+    } catch (e) {
+      alert('동기화 실패: ' + e.message);
+    } finally {
+      if (btn) { btn.disabled = false; btn.innerHTML = orig; }
+    }
+  }
   function toggleCalendar(email, calId, checked) {
     const acct = gAccounts.find(a => a.email === email);
     if (!acct) return;
@@ -1824,6 +1912,7 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
     });
   }
   { const b = document.getElementById('connect-google-btn'); if (b) b.onclick = connectAccount; }
+  { const b = document.getElementById('sync-now-btn'); if (b) b.onclick = () => syncAllGoogle(b); }
 
   loadAll();
   renderMonth();
