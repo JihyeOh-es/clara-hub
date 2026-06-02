@@ -1688,6 +1688,7 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
     if (!cat) {
       cat = categories.find(c => c.name === tagName && !c.gcalKey);
       if (cat) { cat.gcalKey = email + '::' + cal.id; }
+      // 기존 태그를 키로 찾았고 사용자가 이름을 바꿨을 수 있으니, 이름은 건드리지 않음 (아래 신규 생성에만 tagName 사용)
     }
     if (!cat) {
       cat = { id: uid(), name: tagName, color: nextCatColor(), gcalKey: email + '::' + cal.id };
