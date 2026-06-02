@@ -229,8 +229,8 @@
     .detail-event:hover { background: var(--color-background-secondary); }
 
     .todo-input-row { display: flex; gap: 6px; margin-bottom: 1rem; align-items: center; flex-wrap: wrap; }
-    .todo-input-row > input[type="text"] { flex: 1; min-width: 80px; }
-    .todo-input-row > select { width: 90px; flex-shrink: 0; appearance: none; -webkit-appearance: none; -moz-appearance: none; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%237F77DD' d='M0 0l5 6 5-6z'/></svg>"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 28px; cursor: pointer; }
+    .todo-input-row > input[type="text"] { flex: 1; min-width: 200px; }
+    .todo-input-row > select { width: 90px; flex-shrink: 0; appearance: none; -webkit-appearance: none; -moz-appearance: none; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%23807E73' d='M0 0l5 6 5-6z'/></svg>"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 28px; cursor: pointer; }
     .todo-due-btn { position: relative; display: flex; align-items: center; gap: 4px; padding: 8px 10px; font-size: 13px; background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); cursor: pointer; color: var(--color-text-tertiary); box-shadow: var(--shadow-sm); flex-shrink: 0; }
     .todo-due-btn:hover { background: var(--color-background-secondary); }
     /* 마감일 버튼 커스텀 툴팁 (데스크탑 호버) */
@@ -280,7 +280,7 @@
     /* 공통 select 스타일 (클라라 결 맞춤) */
     select.cl-select {
       appearance: none; -webkit-appearance: none; -moz-appearance: none;
-      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%237F77DD' d='M0 0l5 6 5-6z'/></svg>");
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%23807E73' d='M0 0l5 6 5-6z'/></svg>");
       background-repeat: no-repeat; background-position: right 12px center;
       padding-right: 30px; cursor: pointer;
     }
@@ -410,7 +410,7 @@
   <div id="view-todos" class="view" style="display: none;">
     <div class="todo-input-row">
       <input type="text" id="new-todo" placeholder="할 일 입력" />
-      <select id="new-todo-cat" class="cl-select"></select>
+      <div id="new-todo-cat-wrap" style="width:110px; flex-shrink:0;"></div>
       <button id="new-todo-due-btn" class="todo-due-btn" data-tooltip="마감일 선택">
         <i class="ti ti-calendar"></i>
         <span id="new-todo-due-label" style="display:none;"></span>
@@ -498,7 +498,7 @@
         </div>
         <div style="display: flex; gap: 8px; align-items: center;">
           <label style="font-size: 13px; color: var(--color-text-secondary); min-width: 52px;">카테고리</label>
-          <select id="td-cat" class="cl-select" style="flex: 1;"></select>
+          <div id="td-cat-wrap" style="flex: 1;"></div>
         </div>
         <div style="display: flex; gap: 8px; align-items: center;">
           <label style="font-size: 13px; color: var(--color-text-secondary); min-width: 52px;">마감</label>
@@ -938,6 +938,8 @@ const storage = {
     return { getValue: () => value, setValue: (v) => { value = v || ''; updateTrigger(); } };
   }
 
+  const newTodoCatPicker = createCatPicker(document.getElementById('new-todo-cat-wrap'), { allowNone: true });
+  const editTodoCatPicker = createCatPicker(document.getElementById('td-cat-wrap'), { allowNone: true });
   const startPicker = createTimePicker(document.getElementById('ev-start-wrap'), '시작 시간');
   const endPicker = createTimePicker(document.getElementById('ev-end-wrap'), '종료 시간');
 
@@ -1179,11 +1181,62 @@ const storage = {
   });
   applyWeekViewMode();
 
+  // 카테고리 선택 팝업 (색 고르기 팝업과 같은 결)
+  function createCatPicker(wrapEl, { allowNone = false } = {}) {
+    let value = '';
+    wrapEl.style.position = 'relative';
+    wrapEl.innerHTML = '';
+
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = 'cl-catpick-trigger';
+    trigger.style.cssText = 'width:100%; display:flex; align-items:center; gap:8px; padding:8px 12px; background:var(--color-background-primary); border:0.5px solid var(--color-border-tertiary); border-radius:var(--border-radius-md); cursor:pointer; font-size:14px; text-align:left; color:var(--color-text-primary);';
+    const swatch = document.createElement('span');
+    swatch.style.cssText = 'width:12px; height:12px; border-radius:50%; flex-shrink:0; border:0.5px solid var(--color-border-tertiary);';
+    const label = document.createElement('span');
+    label.style.cssText = 'flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;';
+    const caret = document.createElement('i');
+    caret.className = 'ti ti-chevron-down';
+    caret.style.cssText = 'font-size:12px; color:var(--color-text-tertiary); flex-shrink:0;';
+    trigger.appendChild(swatch); trigger.appendChild(label); trigger.appendChild(caret);
+    wrapEl.appendChild(trigger);
+
+    const popup = document.createElement('div');
+    popup.style.cssText = 'position:absolute; top:calc(100% + 4px); left:0; right:0; z-index:300; background:var(--color-background-primary); border:0.5px solid var(--color-border-tertiary); border-radius:var(--border-radius-md); box-shadow:var(--shadow-xl); padding:6px; display:none; flex-direction:column; gap:2px; max-height:240px; overflow-y:auto;';
+    wrapEl.appendChild(popup);
+
+    function optionsData() {
+      const arr = allowNone ? [{ id: '', name: '없음', color: '#B0AEA3' }] : [];
+      return arr.concat(categories);
+    }
+    function updateTrigger() {
+      const cat = getCat(value);
+      swatch.style.background = cat.color;
+      label.textContent = cat.name;
+    }
+    function buildOptions() {
+      popup.innerHTML = '';
+      optionsData().forEach(c => {
+        const opt = document.createElement('button');
+        opt.type = 'button';
+        opt.style.cssText = `display:flex; align-items:center; gap:8px; padding:8px 10px; background:${c.id === value ? 'var(--color-background-info)' : 'transparent'}; border:none; border-radius:6px; cursor:pointer; font-size:13px; text-align:left; color:var(--color-text-primary); width:100%;`;
+        opt.innerHTML = `<span style="width:12px; height:12px; border-radius:50%; flex-shrink:0; background:${c.color}; border:0.5px solid var(--color-border-tertiary);"></span><span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${c.name}</span>${c.id === value ? '<i class="ti ti-check" style="font-size:14px; color:var(--color-text-info);"></i>' : ''}`;
+        opt.onclick = (e) => { e.stopPropagation(); value = c.id; updateTrigger(); close(); };
+        popup.appendChild(opt);
+      });
+    }
+    function open() { buildOptions(); popup.style.display = 'flex'; }
+    function close() { popup.style.display = 'none'; }
+    trigger.onclick = (e) => { e.stopPropagation(); popup.style.display === 'flex' ? close() : open(); };
+    document.addEventListener('click', (e) => { if (!wrapEl.contains(e.target)) close(); });
+
+    return { getValue: () => value, setValue: (v) => { value = v || ''; updateTrigger(); } };
+  }
   function populateCatSelect(selectEl, selectedId, allowNone) {
     selectEl.innerHTML = '';
     if (allowNone) {
       const opt = document.createElement('option');
-      opt.value = ''; opt.textContent = '선택 안 함';
+      opt.value = ''; opt.textContent = '없음';
       if (!selectedId) opt.selected = true;
       selectEl.appendChild(opt);
     }
@@ -1267,7 +1320,7 @@ const storage = {
   };
 
   function renderTodos() {
-    populateCatSelect(document.getElementById('new-todo-cat'), '', true);
+    newTodoCatPicker.setValue('');
     const list = document.getElementById('todo-list');
     list.innerHTML = '';
 
@@ -1367,7 +1420,7 @@ const storage = {
     errorEl.style.display = 'none';
     todos.unshift({
       id: uid(), text,
-      categoryId: document.getElementById('new-todo-cat').value,
+      categoryId: newTodoCatPicker.getValue() || null,
       due: document.getElementById('new-todo-due').value || null,
       done: false, createdAt: Date.now()
     });
@@ -1437,7 +1490,7 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
 
   function openTodoModal(t) {
     editingTodoId = t.id;
-    populateCatSelect(document.getElementById('td-cat'), t.categoryId, true);
+    editTodoCatPicker.setValue(t.categoryId || '');
     document.getElementById('td-text').value = t.text;
     document.getElementById('td-due').value = t.due || '';
     document.getElementById('todo-modal-overlay').style.display = 'flex';
@@ -1461,7 +1514,7 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
     const text = document.getElementById('td-text').value.trim();
     if (!text) return document.getElementById('td-text').focus();
     t.text = text;
-    t.categoryId = document.getElementById('td-cat').value;
+    t.categoryId = editTodoCatPicker.getValue() || null;
     t.due = document.getElementById('td-due').value || null;
     save(STORE_TODOS, todos);
     closeTodoModal();
