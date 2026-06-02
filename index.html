@@ -602,9 +602,10 @@ const storage = {
   let selectedMonthDate = null;
 
   // 커스텀 확인 모달 - 브라우저 기본 confirm() 대신 사용
-  function customConfirm(message) {
+  function customConfirm(message, okLabel) {
     return new Promise((resolve) => {
       document.getElementById('confirm-message').textContent = message;
+      document.getElementById('confirm-ok').textContent = okLabel || '삭제';
       document.getElementById('confirm-modal-overlay').style.display = 'flex';
 
       const ok = document.getElementById('confirm-ok');
@@ -1156,6 +1157,10 @@ const storage = {
   }
 
   function openEventModal(ev, defaultDate) {
+    if (ev && ev.gcal) {
+      customConfirm(`"${ev.title}"\n\n구글에서 가져온 일정이라 편집은 안 돼요.\n이 플래너에서 숨길까요? (구글 캘린더엔 그대로 남아요)`, '숨기기').then(ok => { if (ok) hideGEvent(ev.id); });
+      return;
+    }
     editingEventId = ev ? ev.id : null;
     document.getElementById('modal-title').textContent = ev ? '일정 편집' : '일정 추가';
     document.getElementById('ev-delete').style.display = ev ? 'inline-block' : 'none';
@@ -1674,6 +1679,9 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
   // ==================== Google Calendar Sync ====================
   let gAccounts = [];
   let gEvents = [];   // 구글에서 가져온 일정 (메모리, localStorage 캐시)
+  let gHidden = [];   // 숨긴 구글 일정 id 목록
+  try { const r = storage.get('planner:gcalHidden'); gHidden = r ? JSON.parse(r.value) : []; } catch(e) { gHidden = []; }
+  function hideGEvent(id) { if (!gHidden.includes(id)) { gHidden.push(id); save('planner:gcalHidden', gHidden); } gEvents = gEvents.filter(e => e.id !== id); save('planner:gcalEvents', gEvents); renderMonth(); renderWeek(); }
   try { const r = storage.get('planner:gcalEvents'); gEvents = r ? JSON.parse(r.value) : []; } catch(e) { gEvents = []; }
   const GCAL_PALETTE_BOLD = ['#5D54C2','#C2185B','#E08600','#0E8A5F','#1565C0','#7B1FA2','#00897B','#C62828','#3949AB','#2E7D32','#D84315','#00838F']; // 개인: 진한 계열
   const GCAL_PALETTE_PASTEL = ['#A8A4E6','#F0A6C2','#FFD18C','#9FE0C5','#A6CCF0','#D5B8E8','#9FD8D0','#F2B5A8','#B9BEE8','#B9E0BB','#F5C4A8','#A8D8E0']; // 회사: 파스텔 계열
@@ -1832,7 +1840,7 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
           items.forEach(it => collected.push(mapGEvent(it, a.email, cal.id, catId)));
         }
       }
-      gEvents = collected;
+      gEvents = collected.filter(e => !gHidden.includes(e.id));
       save(STORE_CATS, categories);
       save('planner:gcalEvents', gEvents);
       save('planner:gcalSyncedAt', String(Date.now()));
