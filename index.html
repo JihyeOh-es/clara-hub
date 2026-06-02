@@ -340,6 +340,7 @@
       .today-btn, .add-fab { padding: 0 10px; font-size: 13px; height: 32px; }
     }
   </style>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 
@@ -352,6 +353,7 @@
       <button class="nav-tab" data-view="week"><i class="ti ti-layout-kanban" aria-hidden="true"></i> 주</button>
       <button class="nav-tab" data-view="todos"><i class="ti ti-list-check" aria-hidden="true"></i> 할 일</button>
       <button class="nav-tab" data-view="categories"><i class="ti ti-tag" aria-hidden="true"></i> 태그</button>
+      <button class="nav-tab" data-view="sync" title="동기화"><i class="ti ti-cloud" aria-hidden="true"></i></button>
     </nav>
     <button id="today-btn" class="today-btn" style="display:none;" title="오늘로 이동">오늘</button>
     <button id="add-event-btn-nav" title="일정 추가" class="add-fab"><i class="ti ti-plus" aria-hidden="true"></i><span>일정</span></button>
@@ -443,6 +445,11 @@
   </div>
   </div>
 
+  <div id="view-sync" class="view" style="display: none;">
+    <p style="font-size:13px; color: var(--color-text-secondary); margin: 0 0 1rem; line-height:1.5;">구글 계정을 연결하면 캘린더 일정을 읽기 전용으로 가져옵니다.</p>
+    <button id="connect-google-btn" class="add-fab" style="margin-bottom: 1.25rem;"><i class="ti ti-plus"></i><span>구글 계정 연결</span></button>
+    <div id="sync-accounts" style="display:flex; flex-direction:column; gap:6px;"></div>
+  </div>
   <div id="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 100; align-items: center; justify-content: center; padding: 1rem;">
     <div style="background: var(--color-background-primary); border-radius: var(--border-radius-lg); padding: 1.25rem; width: 100%; max-width: 420px; border: 0.5px solid var(--color-border-tertiary); max-height: 90vh; overflow-y: auto;box-shadow: var(--shadow-xl);">
       <h3 id="modal-title" style="margin: 0 0 1rem;">일정 추가</h3>
@@ -575,6 +582,9 @@ const storage = {
   const STORE_EVENTS = 'planner:events';
   const STORE_TODOS = 'planner:todos';
   const STORE_CATS = 'planner:categories';
+  const STORE_GACCOUNTS = 'planner:googleAccounts';
+  const GOOGLE_CLIENT_ID = '1082530236706-mcoldupdtni86aeip1migbr5lrmoi2if.apps.googleusercontent.com';
+  const GOOGLE_SCOPE = 'https://www.googleapis.com/auth/calendar.readonly';
 
   const DEFAULT_CATS = [
     { id: 'c1', name: '개인', color: '#7F77DD' },
@@ -899,6 +909,7 @@ const storage = {
       document.querySelectorAll('.view').forEach(v => v.style.display = 'none');
       document.getElementById('view-' + tab.dataset.view).style.display = 'block';
       if (tab.dataset.view === 'categories') renderCategories();
+      if (tab.dataset.view === 'sync') renderSync();
       if (tab.dataset.view === 'todos') renderTodos();
       if (tab.dataset.view === 'month') renderMonth();
       if (tab.dataset.view === 'week') renderWeek();
@@ -1656,6 +1667,96 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
     save(STORE_CATS, categories);
     renderCategories();
   };
+  // ==================== Google Calendar Sync ====================
+  let gAccounts = [];
+  const gTokens = {};            // email -> {token, expiresAt} (메모리만, 새로고침 시 사라짐)
+  let gTokenClient = null, gSettle = null;
+  try { const r = storage.get(STORE_GACCOUNTS); gAccounts = r ? JSON.parse(r.value) : []; } catch(e) { gAccounts = []; }
+
+  function ensureTokenClient() {
+    if (gTokenClient) return true;
+    if (!(window.google && google.accounts && google.accounts.oauth2)) return false;
+    gTokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: GOOGLE_CLIENT_ID,
+      scope: GOOGLE_SCOPE,
+      callback: (resp) => { if (gSettle) { const s = gSettle; gSettle = null; resp && resp.error ? s.reject(new Error(resp.error)) : s.resolve(resp.access_token); } },
+      error_callback: (err) => { if (gSettle) { const s = gSettle; gSettle = null; s.reject(new Error((err && err.type) || 'oauth_error')); } }
+    });
+    return true;
+  }
+  function requestToken({ prompt = 'consent', hint } = {}) {
+    return new Promise((resolve, reject) => {
+      if (!ensureTokenClient()) return reject(new Error('Google 라이브러리 로딩 중이에요. 잠시 후 다시 시도하세요.'));
+      gSettle = { resolve, reject };
+      const cfg = { prompt };
+      if (hint) cfg.hint = hint;
+      gTokenClient.requestAccessToken(cfg);
+    });
+  }
+  async function fetchPrimaryEmail(token) {
+    const res = await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList', { headers: { Authorization: 'Bearer ' + token } });
+    if (!res.ok) throw new Error('calendarList ' + res.status);
+    const data = await res.json();
+    const primary = (data.items || []).find(c => c.primary);
+    return primary ? primary.id : null;
+  }
+  // 다음 단계(6단계)에서 일정 가져올 때 토큰 재발급용
+  async function getToken(email) {
+    const t = gTokens[email];
+    if (t && t.expiresAt > Date.now() + 60000) return t.token;
+    const token = await requestToken({ prompt: '', hint: email });
+    gTokens[email] = { token, expiresAt: Date.now() + 55 * 60 * 1000 };
+    return token;
+  }
+  async function connectAccount() {
+    try {
+      const token = await requestToken({ prompt: 'consent' });
+      const email = await fetchPrimaryEmail(token);
+      if (!email) throw new Error('계정 이메일을 확인하지 못했어요.');
+      gTokens[email] = { token, expiresAt: Date.now() + 55 * 60 * 1000 };
+      if (!gAccounts.find(a => a.email === email)) {
+        gAccounts.push({ email, label: '', calendars: [] });
+        save(STORE_GACCOUNTS, gAccounts);
+      }
+      renderSync();
+    } catch (e) { alert('연결 실패: ' + e.message); }
+  }
+  function disconnectAccount(email) {
+    gAccounts = gAccounts.filter(a => a.email !== email);
+    delete gTokens[email];
+    save(STORE_GACCOUNTS, gAccounts);
+    renderSync();
+  }
+  function renderSync() {
+    const wrap = document.getElementById('sync-accounts');
+    if (!wrap) return;
+    wrap.innerHTML = '';
+    if (gAccounts.length === 0) {
+      const p = document.createElement('p');
+      p.style.cssText = 'color: var(--color-text-tertiary); font-size: 14px; padding: 1rem 0;';
+      p.textContent = '연결된 구글 계정이 없어요.';
+      wrap.appendChild(p);
+      return;
+    }
+    gAccounts.forEach(a => {
+      const connected = !!gTokens[a.email];
+      const row = document.createElement('div');
+      row.className = 'cat-row';
+      row.innerHTML = `<i class="ti ti-user-circle" style="font-size:20px; color: var(--color-text-tertiary);"></i>
+        <div style="flex:1; min-width:0;">
+          <div style="font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${a.email}</div>
+          <div style="font-size:11px; color:${connected ? 'var(--color-text-info)' : 'var(--color-text-tertiary)'};">${connected ? '연결됨' : '재연결 필요 (상단 버튼)'}</div>
+        </div>`;
+      const del = document.createElement('button');
+      del.className = 'cat-action-btn';
+      del.innerHTML = '<i class="ti ti-trash"></i>';
+      del.title = '연결 해제';
+      del.onclick = () => disconnectAccount(a.email);
+      row.appendChild(del);
+      wrap.appendChild(row);
+    });
+  }
+  { const b = document.getElementById('connect-google-btn'); if (b) b.onclick = connectAccount; }
 
   loadAll();
   renderMonth();
