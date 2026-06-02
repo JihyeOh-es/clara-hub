@@ -1499,7 +1499,7 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
   document.getElementById('todo-modal-overlay').onclick = (e) => { if (e.target.id === 'todo-modal-overlay') closeTodoModal(); };
   document.getElementById('td-clear-due').onclick = () => { document.getElementById('td-due').value = ''; };
   // 할 일 편집 모달에서 엔터 키로 저장
-  ['td-text', 'td-cat', 'td-due'].forEach(id => {
+  ['td-text', 'td-due'].forEach(id => {
     document.getElementById(id).addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.isComposing) {
         e.preventDefault();
