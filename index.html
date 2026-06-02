@@ -363,18 +363,21 @@
       <button class="nav-tab" data-view="categories"><i class="ti ti-tag" aria-hidden="true"></i> 태그</button>
       <button class="nav-tab" data-view="sync" title="동기화"><i class="ti ti-cloud" aria-hidden="true"></i></button>
     </nav>
-    <button id="today-btn" class="today-btn" style="display:none;" title="오늘로 이동">오늘</button>
+    
     <button id="add-event-btn-nav" title="일정 추가" class="add-fab"><i class="ti ti-plus" aria-hidden="true"></i><span>일정</span></button>
   </div>
 
   <div id="view-month" class="view">
-    <div class="period-nav">
-      <button id="prev-month" class="period-nav-btn"><i class="ti ti-chevron-left"></i></button>
-      <span class="period-nav-label-wrap">
-        <span id="month-label" class="period-nav-label"></span>
-        <span id="month-dot" class="period-nav-dot" style="display:none;"></span>
-      </span>
-      <button id="next-month" class="period-nav-btn"><i class="ti ti-chevron-right"></i></button>
+    <div style="display:flex; gap:8px; align-items:stretch; margin-bottom:1rem;">
+      <div class="period-nav" style="flex:1; margin-bottom:0;">
+        <button id="prev-month" class="period-nav-btn"><i class="ti ti-chevron-left"></i></button>
+        <span class="period-nav-label-wrap">
+          <span id="month-label" class="period-nav-label"></span>
+          <span id="month-dot" class="period-nav-dot" style="display:none;"></span>
+        </span>
+        <button id="next-month" class="period-nav-btn"><i class="ti ti-chevron-right"></i></button>
+      </div>
+      <button id="today-btn-month" class="today-btn" style="display:none; flex-shrink:0;" title="오늘로 이동">오늘</button>
     </div>
     
   <div id="month-weekdays" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-bottom: 6px; background: var(--color-background-tertiary); border-radius: var(--border-radius-md); box-shadow: var(--shadow-sm);">
@@ -399,6 +402,7 @@
         </span>
         <button id="next-week" class="period-nav-btn"><i class="ti ti-chevron-right"></i></button>
       </div>
+      <button id="today-btn-week" class="today-btn" style="display:none; flex-shrink:0;" title="오늘로 이동">오늘</button>
       <div style="display: flex; gap: 4px; flex-shrink: 0;">
         <button class="week-view-btn active" data-week-view="board" title="가로 보기"><i class="ti ti-layout-board"></i></button>
         <button class="week-view-btn" data-week-view="list" title="세로 보기"><i class="ti ti-list"></i></button>
@@ -1081,19 +1085,13 @@ const storage = {
   document.getElementById('next-month').onclick = () => { monthOffset++; selectedMonthDate = null; renderMonth(); updateTodayBtn(); };
   // 오늘 버튼 - 현재 달/주가 아닐 때만 표시
   function updateTodayBtn() {
-    const activeView = document.querySelector('.nav-tab.active')?.dataset.view;
-    const todayBtn = document.getElementById('today-btn');
-    let show = false;
-    if (activeView === 'month' && monthOffset !== 0) show = true;
-    if (activeView === 'week' && weekOffset !== 0) show = true;
-    todayBtn.style.display = show ? 'flex' : 'none';
+    const mBtn = document.getElementById('today-btn-month');
+    const wBtn = document.getElementById('today-btn-week');
+    if (mBtn) mBtn.style.display = monthOffset !== 0 ? 'flex' : 'none';
+    if (wBtn) wBtn.style.display = weekOffset !== 0 ? 'flex' : 'none';
   }
-  document.getElementById('today-btn').onclick = () => {
-    const activeView = document.querySelector('.nav-tab.active')?.dataset.view;
-    if (activeView === 'month') { monthOffset = 0; selectedMonthDate = null; renderMonth(); }
-    if (activeView === 'week') { weekOffset = 0; renderWeek(); }
-    updateTodayBtn();
-  };
+  document.getElementById('today-btn-month').onclick = () => { monthOffset = 0; selectedMonthDate = null; renderMonth(); updateTodayBtn(); };
+  document.getElementById('today-btn-week').onclick = () => { weekOffset = 0; renderWeek(); updateTodayBtn(); };
   document.getElementById('add-event-btn-nav').onclick = () => {
     openEventModal(null, selectedMonthDate || fmtDate(new Date()));
   };
@@ -1205,7 +1203,7 @@ const storage = {
     wrapEl.appendChild(popup);
 
     function optionsData() {
-      const arr = allowNone ? [{ id: '', name: '없음', color: '#B0AEA3' }] : [];
+      const arr = allowNone ? [{ id: '', name: '미분류', color: '#B0AEA3' }] : [];
       return arr.concat(categories);
     }
     function updateTrigger() {
