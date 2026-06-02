@@ -603,6 +603,29 @@ const storage = {
   let selectedMonthDate = null;
 
   // 커스텀 확인 모달 - 브라우저 기본 confirm() 대신 사용
+  function customAlert(message) {
+    return new Promise((resolve) => {
+      const overlay = document.getElementById('confirm-modal-overlay');
+      document.getElementById('confirm-message').textContent = message;
+      const ok = document.getElementById('confirm-ok');
+      const cancel = document.getElementById('confirm-cancel');
+      ok.textContent = '확인';
+      ok.style.background = 'var(--color-background-info)';
+      ok.style.color = 'var(--color-text-info)';
+      ok.style.borderColor = 'var(--color-border-info)';
+      cancel.style.display = 'none';
+      overlay.style.display = 'flex';
+      const cleanup = () => {
+        overlay.style.display = 'none';
+        cancel.style.display = '';
+        ok.style.background = ''; ok.style.color = ''; ok.style.borderColor = '';
+        ok.textContent = '삭제';
+        ok.onclick = null; overlay.onclick = null;
+      };
+      ok.onclick = () => { cleanup(); resolve(); };
+      overlay.onclick = (e) => { if (e.target === overlay) { cleanup(); resolve(); } };
+    });
+  }
   function customConfirm(message, okLabel) {
     return new Promise((resolve) => {
       document.getElementById('confirm-message').textContent = message;
@@ -1471,7 +1494,7 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
       delBtn.onclick = (e) => {
         e.stopPropagation();
         if (categories.length <= 1) {
-          alert('최소 1개의 카테고리는 남아있어야 해요.');
+          customAlert('최소 1개의 카테고리는 남아있어야 해요.');
           return;
         }
         openCategoryDeleteModal(cat);
@@ -1795,7 +1818,7 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
         save(STORE_GACCOUNTS, gAccounts);
       }
       renderSync();
-    } catch (e) { alert('연결 실패: ' + e.message); }
+    } catch (e) { customAlert('연결 실패: ' + e.message); }
   }
   function disconnectAccount(email) {
     gAccounts = gAccounts.filter(a => a.email !== email);
@@ -1823,7 +1846,7 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
       save(STORE_GACCOUNTS, gAccounts);
       renderSync();
     } catch (e) {
-      alert('캘린더 불러오기 실패: ' + e.message);
+      customAlert('캘린더 불러오기 실패: ' + e.message);
       if (btn) { btn.disabled = false; btn.innerHTML = orig; }
     }
   }
@@ -1885,7 +1908,7 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
       save('planner:gcalEvents', gEvents);
       save('planner:gcalSyncedAt', String(Date.now()));
       renderSync(); renderSyncHidden(); renderMonth(); renderWeek();;
-      alert('동기화 완료: 일정 ' + gEvents.length + '개');
+      customAlert('동기화 실패: ' + e.message);
     } catch (e) {
       alert('동기화 실패: ' + e.message);
     } finally {
