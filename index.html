@@ -364,7 +364,7 @@
       <button class="nav-tab" data-view="sync" title="동기화"><i class="ti ti-cloud" aria-hidden="true"></i></button>
     </nav>
     
-    <button id="add-event-btn-nav" title="일정 추가" class="add-fab"><i class="ti ti-plus" aria-hidden="true"></i><span>일정</span></button>
+    <button id="today-btn-top" class="today-btn" title="오늘로 이동" style="opacity:0.5;">오늘</button>
   </div>
 
   <div id="view-month" class="view">
@@ -377,7 +377,6 @@
         </span>
         <button id="next-month" class="period-nav-btn"><i class="ti ti-chevron-right"></i></button>
       </div>
-      <button id="today-btn-month" class="today-btn" style="display:none; flex-shrink:0;" title="오늘로 이동">오늘</button>
     </div>
     
   <div id="month-weekdays" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-bottom: 6px; background: var(--color-background-tertiary); border-radius: var(--border-radius-md); box-shadow: var(--shadow-sm);">
@@ -402,7 +401,6 @@
         </span>
         <button id="next-week" class="period-nav-btn"><i class="ti ti-chevron-right"></i></button>
       </div>
-      <button id="today-btn-week" class="today-btn" style="display:none; flex-shrink:0;" title="오늘로 이동">오늘</button>
       <div style="display: flex; gap: 4px; flex-shrink: 0;">
         <button class="week-view-btn active" data-week-view="board" title="가로 보기"><i class="ti ti-layout-board"></i></button>
         <button class="week-view-btn" data-week-view="list" title="세로 보기"><i class="ti ti-list"></i></button>
@@ -1085,15 +1083,21 @@ const storage = {
   document.getElementById('next-month').onclick = () => { monthOffset++; selectedMonthDate = null; renderMonth(); updateTodayBtn(); };
   // 오늘 버튼 - 현재 달/주가 아닐 때만 표시
   function updateTodayBtn() {
-    const mBtn = document.getElementById('today-btn-month');
-    const wBtn = document.getElementById('today-btn-week');
-    if (mBtn) mBtn.style.display = monthOffset !== 0 ? 'flex' : 'none';
-    if (wBtn) wBtn.style.display = weekOffset !== 0 ? 'flex' : 'none';
+    const btn = document.getElementById('today-btn-top');
+    if (!btn) return;
+    const view = document.querySelector('.nav-tab.active')?.dataset.view;
+    // 월/주 탭에서만 의미가 있으니 그 외 탭에선 숨김
+    if (view !== 'month' && view !== 'week') { btn.style.display = 'none'; return; }
+    btn.style.display = 'flex';
+    // 현재 달/주면 반투명, 다른 기간이면 또렷하게
+    const atNow = (view === 'month' && monthOffset === 0) || (view === 'week' && weekOffset === 0);
+    btn.style.opacity = atNow ? '0.5' : '1';
   }
-  document.getElementById('today-btn-month').onclick = () => { monthOffset = 0; selectedMonthDate = null; renderMonth(); updateTodayBtn(); };
-  document.getElementById('today-btn-week').onclick = () => { weekOffset = 0; renderWeek(); updateTodayBtn(); };
-  document.getElementById('add-event-btn-nav').onclick = () => {
-    openEventModal(null, selectedMonthDate || fmtDate(new Date()));
+  document.getElementById('today-btn-top').onclick = () => {
+    const view = document.querySelector('.nav-tab.active')?.dataset.view;
+    if (view === 'month') { monthOffset = 0; selectedMonthDate = null; renderMonth(); }
+    if (view === 'week') { weekOffset = 0; renderWeek(); }
+    updateTodayBtn();
   };
 
   function renderWeek() {
