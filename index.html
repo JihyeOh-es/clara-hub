@@ -1840,8 +1840,8 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
   }
 
   try { const r = storage.get('planner:gcalEvents'); gEvents = r ? JSON.parse(r.value) : []; } catch(e) { gEvents = []; }
-  const GCAL_PALETTE_BOLD = ['#5D54C2','#C2185B','#E08600','#0E8A5F','#1565C0','#7B1FA2','#00897B','#C62828','#3949AB','#2E7D32','#D84315','#00838F']; // 개인: 진한 계열
-  const GCAL_PALETTE_PASTEL = ['#A8A4E6','#F0A6C2','#FFD18C','#9FE0C5','#A6CCF0','#D5B8E8','#9FD8D0','#F2B5A8','#B9BEE8','#B9E0BB','#F5C4A8','#A8D8E0']; // 회사: 파스텔 계열
+  const GCAL_PALETTE_BOLD = ['#C2185B','#E08600','#0E8A5F','#1565C0','#00897B','#C62828','#2E7D32','#D84315','#00838F','#AD1457','#BF360C','#00695C']; // 개인: 진한 계열 (보라 제외)
+  const GCAL_PALETTE_PASTEL = ['#F0A6C2','#FFD18C','#9FE0C5','#A6CCF0','#9FD8D0','#F2B5A8','#B9E0BB','#F5C4A8','#A8D8E0','#F5B8D0','#FFC9A8','#A8E0D0']; // 회사: 파스텔 계열 (보라 제외)
   function paletteFor(email) { return /@devsisters\.com$/i.test(email) ? GCAL_PALETTE_PASTEL : GCAL_PALETTE_BOLD; }
   function nextCatColor(email) {
     const palette = paletteFor(email);
