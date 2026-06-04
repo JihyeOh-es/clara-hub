@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Clara's Hub · 시작 가이드</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.5.0/dist/tabler-icons.min.css">
+<style>
+  :root {
+    --bg: #F5F4ED;
+    --bg-card: #ffffff;
+    --bg-soft: #FAFAF6;
+    --bg-tert: #EBE9DD;
+    --bg-info: #E7EEF7;
+    --bg-warn: #FBF3E4;
+    --bg-danger: #FBEAEA;
+    --text: #1A1915;
+    --text-2: #4F4E48;
+    --text-3: #807E73;
+    --text-info: #2D5A95;
+    --text-warn: #B47318;
+    --text-danger: #B33A3A;
+    --border: #E0DED1;
+    --border-2: #C4C2B3;
+    --border-info: #B0CCE9;
+    --border-warn: #EAD3A3;
+    --accent: #7F77DD;
+    --accent-deep: #5D54C2;
+    --r: 12px;
+    --r-sm: 8px;
+    --shadow: 0 1px 2px rgba(0,0,0,.05), 0 1px 3px rgba(0,0,0,.06);
+    --shadow-lg: 0 4px 16px rgba(0,0,0,.10);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Pretendard', 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 680px; margin: 0 auto; padding: 0 20px 80px; }
+
+  /* ===== Hero ===== */
+  header {
+    text-align: center;
+    padding: 64px 20px 40px;
+    position: relative;
+  }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 600; letter-spacing: .04em;
+    color: var(--accent-deep);
+    background: #EFEDFA; border: 1px solid #DDD8F4;
+    padding: 5px 12px; border-radius: 999px;
+    margin-bottom: 20px;
+  }
+  h1 {
+    font-size: 34px; margin: 0 0 12px; letter-spacing: -.02em;
+    font-weight: 700;
+  }
+  h1 .dot { color: var(--accent); }
+  .sub { font-size: 16px; color: var(--text-2); margin: 0 auto; max-width: 460px; }
+
+  /* ===== Section ===== */
+  .section-label {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; font-weight: 700; letter-spacing: .03em;
+    color: var(--text-3); text-transform: uppercase;
+    margin: 48px 0 16px;
+  }
+  .section-label::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+
+  /* ===== Step card ===== */
+  .step {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    box-shadow: var(--shadow);
+    padding: 22px 22px 22px 20px;
+    margin-bottom: 14px;
+    display: flex; gap: 16px;
+    position: relative;
+  }
+  .step-num {
+    flex-shrink: 0;
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 15px;
+    box-shadow: 0 2px 5px rgba(127,119,221,.4);
+  }
+  .step-body { flex: 1; min-width: 0; }
+  .step h3 {
+    margin: 4px 0 6px; font-size: 17px; font-weight: 650;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .step h3 i { color: var(--accent); font-size: 19px; }
+  .step p { margin: 0 0 8px; color: var(--text-2); font-size: 15px; }
+  .step p:last-child { margin-bottom: 0; }
+
+  kbd {
+    font-family: inherit; font-size: 13px; font-weight: 600;
+    background: var(--bg-tert); border: 1px solid var(--border-2);
+    border-radius: 6px; padding: 2px 7px; color: var(--text);
+    white-space: nowrap; box-shadow: 0 1px 0 var(--border-2);
+  }
+  .path {
+    display: inline-flex; align-items: center; flex-wrap: wrap; gap: 4px;
+    background: var(--bg-soft); border: 1px solid var(--border);
+    border-radius: var(--r-sm); padding: 8px 12px; margin: 6px 0;
+    font-size: 14px; color: var(--text-2);
+  }
+  .path b { color: var(--text); font-weight: 600; }
+  .path i { color: var(--text-3); font-size: 14px; }
+
+  /* mini chip preview of the cloud tab button */
+  .chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: var(--accent); color: #fff;
+    font-size: 13px; font-weight: 600;
+    padding: 4px 11px; border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(127,119,221,.35);
+    vertical-align: middle;
+  }
+  .chip.ghost {
+    background: var(--bg-card); color: var(--text-2);
+    border: 1px solid var(--border); box-shadow: var(--shadow);
+  }
+  .chip i { font-size: 14px; }
+
+  /* ===== Callout ===== */
+  .note {
+    border-radius: var(--r-sm);
+    padding: 14px 16px 14px 14px;
+    margin: 10px 0;
+    display: flex; gap: 10px;
+    font-size: 14px; line-height: 1.6;
+  }
+  .note i { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .note .t { color: inherit; }
+  .note b { font-weight: 650; }
+  .note.info { background: var(--bg-info); border: 1px solid var(--border-info); color: var(--text-info); }
+  .note.warn { background: var(--bg-warn); border: 1px solid var(--border-warn); color: var(--text-warn); }
+
+  /* ===== Prereq card (host action) ===== */
+  .host {
+    background: var(--bg-soft);
+    border: 1px dashed var(--border-2);
+    border-radius: var(--r);
+    padding: 20px 22px;
+    margin-bottom: 14px;
+  }
+  .host h3 { margin: 0 0 8px; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+  .host h3 i { color: var(--text-3); }
+  .host p { margin: 0; color: var(--text-2); font-size: 14.5px; }
+
+  /* ===== FAQ ===== */
+  details {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--r-sm); margin-bottom: 8px; overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  summary {
+    cursor: pointer; padding: 15px 18px; font-weight: 600; font-size: 15px;
+    list-style: none; display: flex; align-items: center; gap: 10px;
+    color: var(--text);
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary i.q { color: var(--accent); font-size: 18px; }
+  summary i.chev { margin-left: auto; color: var(--text-3); transition: transform .2s; font-size: 18px; }
+  details[open] summary i.chev { transform: rotate(180deg); }
+  details .ans { padding: 0 18px 16px 46px; color: var(--text-2); font-size: 14.5px; line-height: 1.65; }
+
+  footer {
+    text-align: center; margin-top: 56px; padding-top: 28px;
+    border-top: 1px solid var(--border);
+    color: var(--text-3); font-size: 13px;
+  }
+  footer .heart { color: var(--accent); }
+
+  @media (max-width: 480px) {
+    h1 { font-size: 27px; }
+    header { padding: 44px 16px 28px; }
+    .step { padding: 18px 16px 18px 16px; gap: 12px; }
+    .step h3 { font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="badge"><i class="ti ti-sparkles" style="font-size:14px;"></i> 시작 가이드</span>
+  <h1>Clara's Hub<span class="dot">.</span></h1>
+  <p class="sub">여러 구글 캘린더를 한 곳에서 모아 보는 플래너예요.<br>아래 순서대로 5분이면 내 구글 캘린더를 연결할 수 있어요.</p>
+</header>
+
+<div class="wrap">
+
+  <!-- PREREQ -->
+  <div class="section-label"><i class="ti ti-flag-3"></i> 시작하기 전에</div>
+
+  <div class="host">
+    <h3><i class="ti ti-mail-forward"></i> 내 Gmail 주소를 먼저 전달하세요</h3>
+    <p>이 앱은 아직 초대받은 사람만 연결할 수 있어요. 사용할 <b>구글(Gmail) 계정 주소</b>를 앱을 공유해 준 사람에게 알려주면, 연결 허용 목록에 추가해 줍니다. 추가되기 전에 연결을 시도하면 “액세스 차단됨” 화면이 떠요.</p>
+  </div>
+
+  <div class="note info">
+    <i class="ti ti-lock"></i>
+    <div class="t"><b>읽기 전용이에요.</b> 이 앱은 구글 캘린더 일정을 <b>가져와서 보여주기만</b> 합니다. 일정을 수정하거나 삭제하지 않고, 구글 캘린더에는 아무 변화도 주지 않아요.</div>
+  </div>
+
+  <!-- STEPS -->
+  <div class="section-label"><i class="ti ti-list-numbers"></i> 연결 방법</div>
+
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <h3><i class="ti ti-world"></i> 앱 열기</h3>
+      <p>공유받은 주소를 브라우저에서 열어요. 휴대폰에서는 <b>공유 → 홈 화면에 추가</b>를 하면 앱처럼 아이콘으로 쓸 수 있어요.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <h3><i class="ti ti-cloud"></i> 동기화 탭으로 이동</h3>
+      <p>상단 메뉴에서 구름 모양 <span class="chip ghost"><i class="ti ti-cloud"></i></span> 탭을 누르세요. 구글 계정을 연결하는 화면이 나와요.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">
+      <h3><i class="ti ti-plus"></i> 구글 계정 연결</h3>
+      <p><span class="chip"><i class="ti ti-plus"></i> 구글 계정 연결</span> 버튼을 누르고, 미리 전달했던 그 구글 계정으로 로그인하세요.</p>
+      <div class="note warn">
+        <i class="ti ti-alert-triangle"></i>
+        <div class="t"><b>“확인되지 않은 앱” 경고가 떠도 정상이에요.</b> 개인이 만든 앱이라 그래요. <b>고급</b> → <b>(이동) 계속</b>을 누르면 진행됩니다. 그다음 캘린더 접근 권한을 <b>허용</b> 하세요.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-body">
+      <h3><i class="ti ti-refresh"></i> 가져올 캘린더 고르기</h3>
+      <p>연결된 계정 카드에서 <b>캘린더 불러오기</b>를 누르면 내 캘린더 목록이 펼쳐져요. 플래너에서 보고 싶은 캘린더만 <b>체크</b>하세요. (체크는 자동 저장돼요.)</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">5</div>
+    <div class="step-body">
+      <h3><i class="ti ti-calendar-check"></i> 일정 가져오기</h3>
+      <p>맨 위 <span class="chip ghost"><i class="ti ti-refresh"></i> 일정 가져오기</span> 버튼을 누르면 끝! 선택한 캘린더의 일정이 <b>월·주 화면</b>에 색깔별로 나타나요.</p>
+      <div class="note info">
+        <i class="ti ti-palette"></i>
+        <div class="t">캘린더마다 자동으로 다른 색이 붙어요. <b>태그 탭</b>에서 색이나 이름을 마음대로 바꿀 수 있습니다.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAQ -->
+  <div class="section-label"><i class="ti ti-help-circle"></i> 자주 묻는 것</div>
+
+  <details>
+    <summary><i class="ti ti-refresh-alert q"></i> 새로고침하니 “재로그인”이라고 떠요<i class="ti ti-chevron-down chev"></i></summary>
+    <div class="ans">정상이에요. 보안을 위해 로그인 정보를 기기에 저장하지 않아서, 새로 접속하면 <b>일정 가져오기</b>를 누를 때 한 번 더 로그인 창이 떠요. 연결 자체가 풀린 건 아닙니다.</div>
+  </details>
+
+  <details>
+    <summary><i class="ti ti-eye-off q"></i> 안 보고 싶은 일정이 있어요<i class="ti ti-chevron-down chev"></i></summary>
+    <div class="ans">월·주 화면에서 그 일정을 누르면 <b>숨기기</b>를 할 수 있어요. 구글 캘린더에는 그대로 남고, 이 플래너에서만 가려집니다. 동기화 탭 아래 <b>숨긴 일정</b>에서 언제든 되돌릴 수 있어요.</div>
+  </details>
+
+  <details>
+    <summary><i class="ti ti-pencil q"></i> 가져온 일정을 여기서 수정할 수 있나요?<i class="ti ti-chevron-down chev"></i></summary>
+    <div class="ans">아니요. 구글에서 가져온 일정은 읽기 전용이에요. 일정을 추가·수정하려면 구글 캘린더(또는 휴대폰 캘린더 앱)에서 하고, 이 앱에서 <b>일정 가져오기</b>를 다시 누르면 반영돼요. 단, 이 앱 자체의 <b>할 일</b>은 여기서 직접 만들 수 있어요.</div>
+  </details>
+
+  <details>
+    <summary><i class="ti ti-device-mobile q"></i> 휴대폰과 PC가 따로 보여요<i class="ti ti-chevron-down chev"></i></summary>
+    <div class="ans">앱이 직접 만든 <b>할 일·태그</b> 같은 정보는 기기마다 따로 저장돼요. 하지만 구글 캘린더 일정은 어느 기기에서든 로그인하면 똑같이 가져올 수 있어요.</div>
+  </details>
+
+  <details>
+    <summary><i class="ti ti-shield-lock q"></i> 내 일정이 다른 사람에게 보이나요?<i class="ti ti-chevron-down chev"></i></summary>
+    <div class="ans">아니요. 연결은 본인 기기에서 본인 구글 계정으로만 이뤄지고, 가져온 일정은 그 기기 안에서만 표시돼요. 다른 사람의 화면에는 보이지 않습니다.</div>
+  </details>
+
+  <footer>
+    문제가 생기면 “액세스 차단됨” 같은 화면을 캡처해서<br>앱을 공유해 준 사람에게 보내면 가장 빨라요.<br><br>
+    Made with <span class="heart">♥</span> · Clara's Hub
+  </footer>
+
+</div>
+</body>
+</html>
