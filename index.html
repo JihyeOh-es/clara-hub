@@ -579,6 +579,26 @@
     </div>
   </div>
 
+  <div id="gcal-detail-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; align-items: center; justify-content: center; padding: 1rem;">
+    <div style="background: var(--color-background-primary); border-radius: var(--border-radius-lg); padding: 1.25rem; width: 100%; max-width: 400px; border: 0.5px solid var(--color-border-tertiary); box-shadow: var(--shadow-xl);">
+      <div style="display:flex; align-items:flex-start; gap:8px; margin-bottom:16px;">
+        <span id="gd-dot" style="width:12px; height:12px; border-radius:50%; flex-shrink:0; margin-top:6px;"></span>
+        <h3 id="gd-title" style="margin:0; flex:1; font-size:17px; line-height:1.4; word-break:break-word;"></h3>
+        <button id="gd-close" title="닫기" style="border:none; background:transparent; color:var(--color-text-tertiary); padding:2px; font-size:20px; cursor:pointer; flex-shrink:0; line-height:1; box-shadow:none;"><i class="ti ti-x"></i></button>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:11px; font-size:14px; color:var(--color-text-secondary);">
+        <div style="display:flex; align-items:center; gap:8px;"><i class="ti ti-clock" style="font-size:16px; color:var(--color-text-tertiary); flex-shrink:0;"></i><span id="gd-time"></span></div>
+        <div id="gd-place-row" style="display:flex; align-items:center; gap:8px;"><i class="ti ti-map-pin" style="font-size:16px; color:var(--color-text-tertiary); flex-shrink:0;"></i><span id="gd-place"></span></div>
+        <div id="gd-cat-row" style="display:flex; align-items:center; gap:8px;"><i class="ti ti-tag" style="font-size:16px; color:var(--color-text-tertiary); flex-shrink:0;"></i><span id="gd-cat"></span></div>
+        <div id="gd-memo-row" style="display:flex; align-items:flex-start; gap:8px;"><i class="ti ti-align-left" style="font-size:16px; color:var(--color-text-tertiary); flex-shrink:0; margin-top:2px;"></i><span id="gd-memo" style="white-space:pre-wrap; word-break:break-word;"></span></div>
+      </div>
+      <div style="display:flex; gap:8px; margin-top:1.25rem; justify-content:flex-end; align-items:center;">
+        <span style="margin-right:auto; font-size:11px; color:var(--color-text-tertiary);"><i class="ti ti-cloud" style="font-size:13px;"></i> 구글 캘린더 · 읽기 전용</span>
+        <button id="gd-hide"><i class="ti ti-eye-off"></i> 숨기기</button>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -1062,7 +1082,7 @@ const storage = {
         const item = document.createElement('div');
         item.className = 'detail-event';
         const catTagHtml = `<span class="todo-cat-tag" style="background:${hexToRgba(cat.color, 0.15)}; color:${textColorForBg(cat.color)};">${cat.name}</span>`;
-        item.innerHTML = `<span style="width:14px; display:inline-flex; justify-content:center; flex-shrink:0;"><span class="event-dot" style="background:${cat.color};"></span></span><span class="event-time">${ev.start ? fmtTimeKR(ev.start) : '종일'}</span><span class="event-title">${ev.title}</span>` + (ev.place ? `<span class="event-place"><i class="ti ti-map-pin" style="font-size:11px;"></i> ${ev.place}</span>` : '') + catTagHtml;
+        item.innerHTML = `<span style="width:14px; display:inline-flex; justify-content:center; flex-shrink:0;"><span class="event-dot" style="background:${cat.color};"></span></span><span class="event-time">${ev.start ? fmtTimeKR(ev.start) : '종일'}</span><span class="event-title">${ev.title}</span>` + catTagHtml;
         item.onclick = () => openEventModal(ev);
         list.appendChild(item);
       });
@@ -1253,7 +1273,7 @@ const storage = {
 
   function openEventModal(ev, defaultDate) {
     if (ev && ev.gcal) {
-      customConfirm(`"${ev.title}"\n\n구글에서 가져온 일정이라 편집은 안 돼요.\n이 플래너에서 숨길까요? (구글 캘린더엔 그대로 남아요)`, '숨기기').then(ok => { if (ok) hideGEvent(ev.id); });
+      openGcalDetail(ev);
       return;
     }
     editingEventId = ev ? ev.id : null;
@@ -1322,6 +1342,33 @@ const storage = {
     renderMonth(); renderWeek();
   };
 
+  // ===== 구글 일정 세부정보 모달 (읽기 전용) =====
+  let gcalDetailId = null;
+  function openGcalDetail(ev) {
+    gcalDetailId = ev.id;
+    const cat = getCat(ev.categoryId);
+    document.getElementById('gd-dot').style.background = cat.color;
+    document.getElementById('gd-title').textContent = ev.title || '(제목 없음)';
+    const d = new Date(ev.date + 'T00:00:00');
+    const dn = ['일','월','화','수','목','금','토'][d.getDay()];
+    const dateStr = `${d.getMonth()+1}월 ${d.getDate()}일 (${dn})`;
+    document.getElementById('gd-time').textContent = ev.start
+      ? dateStr + ' · ' + fmtTimeKR(ev.start) + (ev.end ? ' ~ ' + fmtTimeKR(ev.end) : '')
+      : dateStr + ' · 종일';
+    const placeRow = document.getElementById('gd-place-row');
+    if (ev.place) { document.getElementById('gd-place').textContent = ev.place; placeRow.style.display = 'flex'; }
+    else placeRow.style.display = 'none';
+    document.getElementById('gd-cat').textContent = cat.name;
+    const memoRow = document.getElementById('gd-memo-row');
+    if (ev.memo) { document.getElementById('gd-memo').textContent = ev.memo; memoRow.style.display = 'flex'; }
+    else memoRow.style.display = 'none';
+    document.getElementById('gcal-detail-overlay').style.display = 'flex';
+  }
+  function closeGcalDetail() { document.getElementById('gcal-detail-overlay').style.display = 'none'; gcalDetailId = null; }
+  document.getElementById('gd-close').onclick = closeGcalDetail;
+  document.getElementById('gcal-detail-overlay').onclick = (e) => { if (e.target.id === 'gcal-detail-overlay') closeGcalDetail(); };
+  document.getElementById('gd-hide').onclick = () => { if (gcalDetailId) hideGEvent(gcalDetailId); closeGcalDetail(); };
+  
   function renderTodos() {
     newTodoCatPicker.setValue('');
     const list = document.getElementById('todo-list');
