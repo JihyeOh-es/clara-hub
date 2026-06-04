@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Clara's Hub · 시작 가이드</title>
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.5.0/dist/tabler-icons.min.css">
 <style>
   :root {
@@ -65,11 +67,12 @@
 
   /* ===== Section ===== */
   .section-label {
-    display: flex; align-items: center; gap: 8px;
-    font-size: 13px; font-weight: 700; letter-spacing: .03em;
-    color: var(--text-3); text-transform: uppercase;
+    display: flex; align-items: center; gap: 10px;
+    font-size: 20px; font-weight: 700; letter-spacing: -.01em;
+    color: var(--text); text-transform: none;
     margin: 48px 0 16px;
   }
+  .section-label i { color: var(--accent); font-size: 22px; }
   .section-label::after { content: ""; flex: 1; height: 1px; background: var(--border); }
 
   /* ===== Step card ===== */
@@ -195,7 +198,7 @@
 <header>
   <span class="badge"><i class="ti ti-sparkles" style="font-size:14px;"></i> 시작 가이드</span>
   <h1>Clara's Hub<span class="dot">.</span></h1>
-  <p class="sub">여러 구글 캘린더를 한 곳에서 모아 보는 플래너예요.<br>아래 순서대로 5분이면 내 구글 캘린더를 연결할 수 있어요.</p>
+  <p class="sub">여러 구글 캘린더를 한 곳에서 모아 보는 플래너입니다.<br>아래 순서대로 5분이면 내 구글 캘린더를 연결할 수 있습니다.</p>
 </header>
 
 <div class="wrap">
@@ -205,12 +208,12 @@
 
   <div class="host">
     <h3><i class="ti ti-mail-forward"></i> 내 Gmail 주소를 먼저 전달하세요</h3>
-    <p>이 앱은 아직 초대받은 사람만 연결할 수 있어요. 사용할 <b>구글(Gmail) 계정 주소</b>를 앱을 공유해 준 사람에게 알려주면, 연결 허용 목록에 추가해 줍니다. 추가되기 전에 연결을 시도하면 “액세스 차단됨” 화면이 떠요.</p>
+    <p>이 앱은 아직 초대받은 사람만 연결할 수 있습니다. 사용할 <b>구글(Gmail) 계정 주소</b>를 앱을 공유해 준 사람에게 알려주면, 연결 허용 목록에 추가해 줍니다. 추가되기 전에 연결을 시도하면 “액세스 차단됨” 화면이 표시됩니다.</p>
   </div>
 
   <div class="note info">
     <i class="ti ti-lock"></i>
-    <div class="t"><b>읽기 전용이에요.</b> 이 앱은 구글 캘린더 일정을 <b>가져와서 보여주기만</b> 합니다. 일정을 수정하거나 삭제하지 않고, 구글 캘린더에는 아무 변화도 주지 않아요.</div>
+    <div class="t"><b>읽기 전용입니다.</b> 이 앱은 구글 캘린더 일정을 가져와서 보여주기만 합니다. 플래너에서 일정을 수정하거나 삭제할 수 없으며 숨기기만 가능합니다. Clara에서 생성한 일정과 할 일 또한 구글 캘린더에 반영되지 않습니다.</div>
   </div>
 
   <!-- STEPS -->
@@ -220,7 +223,7 @@
     <div class="step-num">1</div>
     <div class="step-body">
       <h3><i class="ti ti-world"></i> 앱 열기</h3>
-      <p>공유받은 주소를 브라우저에서 열어요. 휴대폰에서는 <b>공유 → 홈 화면에 추가</b>를 하면 앱처럼 아이콘으로 쓸 수 있어요.</p>
+      <p>공유받은 주소를 브라우저에서 엽니다. 휴대폰에서는 <b>공유 → 홈 화면에 추가</b>를 하면 앱처럼 아이콘으로 사용할 수 있습니다.</p>
     </div>
   </div>
 
@@ -228,7 +231,7 @@
     <div class="step-num">2</div>
     <div class="step-body">
       <h3><i class="ti ti-cloud"></i> 동기화 탭으로 이동</h3>
-      <p>상단 메뉴에서 구름 모양 <span class="chip ghost"><i class="ti ti-cloud"></i></span> 탭을 누르세요. 구글 계정을 연결하는 화면이 나와요.</p>
+      <p>상단 메뉴에서 구름 모양 <span class="chip ghost"><i class="ti ti-cloud"></i></span> 탭을 누릅니다. 구글 계정을 연결하는 화면이 나타납니다.</p>
     </div>
   </div>
 
@@ -236,10 +239,10 @@
     <div class="step-num">3</div>
     <div class="step-body">
       <h3><i class="ti ti-plus"></i> 구글 계정 연결</h3>
-      <p><span class="chip"><i class="ti ti-plus"></i> 구글 계정 연결</span> 버튼을 누르고, 미리 전달했던 그 구글 계정으로 로그인하세요.</p>
+      <p><span class="chip"><i class="ti ti-plus"></i> 구글 계정 연결</span> 버튼을 누르고, 미리 전달했던 그 구글 계정으로 로그인합니다.</p>
       <div class="note warn">
         <i class="ti ti-alert-triangle"></i>
-        <div class="t"><b>“확인되지 않은 앱” 경고가 떠도 정상이에요.</b> 개인이 만든 앱이라 그래요. <b>고급</b> → <b>(이동) 계속</b>을 누르면 진행됩니다. 그다음 캘린더 접근 권한을 <b>허용</b> 하세요.</div>
+        <div class="t"><b>“확인되지 않은 앱” 경고가 표시되어도 정상입니다.</b> 개인이 만든 앱이기 때문입니다. <b>고급</b> → <b>(이동) 계속</b>을 누르면 진행됩니다. 그다음 캘린더 접근 권한을 <b>허용</b>합니다.</div>
       </div>
     </div>
   </div>
@@ -248,7 +251,7 @@
     <div class="step-num">4</div>
     <div class="step-body">
       <h3><i class="ti ti-refresh"></i> 가져올 캘린더 고르기</h3>
-      <p>연결된 계정 카드에서 <b>캘린더 불러오기</b>를 누르면 내 캘린더 목록이 펼쳐져요. 플래너에서 보고 싶은 캘린더만 <b>체크</b>하세요. (체크는 자동 저장돼요.)</p>
+      <p>연결된 계정 카드에서 <b>캘린더 불러오기</b>를 누르면 내 캘린더 목록이 펼쳐집니다. 플래너에서 보고 싶은 캘린더만 <b>체크</b>합니다. (체크는 자동 저장됩니다.)</p>
     </div>
   </div>
 
@@ -256,10 +259,10 @@
     <div class="step-num">5</div>
     <div class="step-body">
       <h3><i class="ti ti-calendar-check"></i> 일정 가져오기</h3>
-      <p>맨 위 <span class="chip ghost"><i class="ti ti-refresh"></i> 일정 가져오기</span> 버튼을 누르면 끝! 선택한 캘린더의 일정이 <b>월·주 화면</b>에 색깔별로 나타나요.</p>
+      <p>맨 위 <span class="chip ghost"><i class="ti ti-refresh"></i> 일정 가져오기</span> 버튼을 누르면 끝입니다. 선택한 캘린더의 일정이 <b>월·주 화면</b>에 색깔별로 나타납니다.</p>
       <div class="note info">
         <i class="ti ti-palette"></i>
-        <div class="t">캘린더마다 자동으로 다른 색이 붙어요. <b>태그 탭</b>에서 색이나 이름을 마음대로 바꿀 수 있습니다.</div>
+        <div class="t">캘린더마다 자동으로 다른 색이 지정됩니다. 태그 탭에서 색이나 이름을 원하는 대로 수정할 수 있으며, 해당 정보는 “캘린더 불러오기” 동기화 버튼을 다시 눌러도 사라지지 않고 저장됩니다.</div>
       </div>
     </div>
   </div>
@@ -268,32 +271,32 @@
   <div class="section-label"><i class="ti ti-help-circle"></i> 자주 묻는 것</div>
 
   <details>
-    <summary><i class="ti ti-refresh-alert q"></i> 새로고침하니 “재로그인”이라고 떠요<i class="ti ti-chevron-down chev"></i></summary>
-    <div class="ans">정상이에요. 보안을 위해 로그인 정보를 기기에 저장하지 않아서, 새로 접속하면 <b>일정 가져오기</b>를 누를 때 한 번 더 로그인 창이 떠요. 연결 자체가 풀린 건 아닙니다.</div>
+    <summary><i class="ti ti-refresh-alert q"></i> 새로고침하니 “재로그인”이라고 표시됩니다<i class="ti ti-chevron-down chev"></i></summary>
+    <div class="ans">정상입니다. 보안을 위해 로그인 정보를 기기에 저장하지 않으므로, 새로 접속하면 <b>일정 가져오기</b>를 누를 때 한 번 더 로그인 창이 표시됩니다. 연결 자체가 풀린 것은 아닙니다.</div>
   </details>
 
   <details>
-    <summary><i class="ti ti-eye-off q"></i> 안 보고 싶은 일정이 있어요<i class="ti ti-chevron-down chev"></i></summary>
-    <div class="ans">월·주 화면에서 그 일정을 누르면 <b>숨기기</b>를 할 수 있어요. 구글 캘린더에는 그대로 남고, 이 플래너에서만 가려집니다. 동기화 탭 아래 <b>숨긴 일정</b>에서 언제든 되돌릴 수 있어요.</div>
+    <summary><i class="ti ti-eye-off q"></i> 안 보고 싶은 일정이 있습니다<i class="ti ti-chevron-down chev"></i></summary>
+    <div class="ans">월·주 화면에서 그 일정을 누르면 <b>숨기기</b>를 할 수 있습니다. 구글 캘린더에는 그대로 남고, 이 플래너에서만 가려집니다. 동기화 탭 아래 <b>숨긴 일정</b>에서 언제든 되돌릴 수 있습니다.</div>
   </details>
 
   <details>
     <summary><i class="ti ti-pencil q"></i> 가져온 일정을 여기서 수정할 수 있나요?<i class="ti ti-chevron-down chev"></i></summary>
-    <div class="ans">아니요. 구글에서 가져온 일정은 읽기 전용이에요. 일정을 추가·수정하려면 구글 캘린더(또는 휴대폰 캘린더 앱)에서 하고, 이 앱에서 <b>일정 가져오기</b>를 다시 누르면 반영돼요. 단, 이 앱 자체의 <b>할 일</b>은 여기서 직접 만들 수 있어요.</div>
+    <div class="ans">아니요. 구글에서 가져온 일정은 읽기 전용입니다. 일정을 추가·수정하려면 구글 캘린더(또는 휴대폰 캘린더 앱)에서 하고, 이 앱에서 <b>일정 가져오기</b>를 다시 누르면 반영됩니다. 단, 이 앱 자체의 할 일과 일정은 직접 추가 및 수정할 수 있습니다.</div>
   </details>
 
   <details>
-    <summary><i class="ti ti-device-mobile q"></i> 휴대폰과 PC가 따로 보여요<i class="ti ti-chevron-down chev"></i></summary>
-    <div class="ans">앱이 직접 만든 <b>할 일·태그</b> 같은 정보는 기기마다 따로 저장돼요. 하지만 구글 캘린더 일정은 어느 기기에서든 로그인하면 똑같이 가져올 수 있어요.</div>
+    <summary><i class="ti ti-device-mobile q"></i> 휴대폰과 PC가 따로 보입니다<i class="ti ti-chevron-down chev"></i></summary>
+    <div class="ans">앱이 직접 만든 <b>할 일·태그</b> 같은 정보는 기기마다 따로 저장됩니다. 다만 구글 캘린더 일정은 어느 기기에서든 로그인하면 똑같이 가져올 수 있습니다.</div>
   </details>
 
   <details>
     <summary><i class="ti ti-shield-lock q"></i> 내 일정이 다른 사람에게 보이나요?<i class="ti ti-chevron-down chev"></i></summary>
-    <div class="ans">아니요. 연결은 본인 기기에서 본인 구글 계정으로만 이뤄지고, 가져온 일정은 그 기기 안에서만 표시돼요. 다른 사람의 화면에는 보이지 않습니다.</div>
+    <div class="ans">아니요. 연결은 본인 기기에서 본인 구글 계정으로만 이뤄지고, 가져온 일정은 그 기기 안에서만 표시됩니다. 다른 사람의 화면에는 보이지 않습니다.</div>
   </details>
 
   <footer>
-    문제가 생기면 “액세스 차단됨” 같은 화면을 캡처해서<br>앱을 공유해 준 사람에게 보내면 가장 빨라요.<br><br>
+    문제가 생기면 “액세스 차단됨” 같은 화면을 캡처해서<br>앱을 공유해 준 사람에게 보내면 가장 빠릅니다.<br><br>
     Made with <span class="heart">♥</span> · Clara's Hub
   </footer>
 
