@@ -581,6 +581,25 @@
     </div>
   </div>
 
+  <div id="todo-detail-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; align-items: center; justify-content: center; padding: 1rem;">
+    <div style="background: var(--color-background-primary); border-radius: var(--border-radius-lg); padding: 1.25rem; width: 100%; max-width: 400px; border: 0.5px solid var(--color-border-tertiary); box-shadow: var(--shadow-xl);">
+      <div style="display:flex; align-items:flex-start; gap:8px; margin-bottom:16px;">
+        <i class="ti ti-checkbox" style="font-size:20px; color:#A8541A; flex-shrink:0; margin-top:3px;"></i>
+        <h3 id="tdv-title" style="margin:0; flex:1; font-size:17px; line-height:1.4; word-break:break-word;"></h3>
+        <button id="tdv-close" title="닫기" style="border:none; background:transparent; color:var(--color-text-tertiary); padding:2px; font-size:20px; cursor:pointer; flex-shrink:0; line-height:1; box-shadow:none;"><i class="ti ti-x"></i></button>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:11px; font-size:14px; color:var(--color-text-secondary);">
+        <div id="tdv-due-row" style="display:flex; align-items:center; gap:8px;"><i class="ti ti-clock" style="font-size:16px; color:var(--color-text-tertiary); flex-shrink:0;"></i><span id="tdv-due"></span></div>
+        <div id="tdv-cat-row" style="display:flex; align-items:center; gap:8px;"><i class="ti ti-tag" style="font-size:16px; color:var(--color-text-tertiary); flex-shrink:0;"></i><span id="tdv-cat"></span></div>
+        <div id="tdv-status-row" style="display:flex; align-items:center; gap:8px;"><i class="ti ti-circle-check" style="font-size:16px; color:var(--color-text-tertiary); flex-shrink:0;"></i><span id="tdv-status"></span></div>
+      </div>
+      <div style="display:flex; gap:8px; margin-top:1.25rem; justify-content:flex-end; align-items:center;">
+        <span style="margin-right:auto; font-size:11px; color:var(--color-text-tertiary);"><i class="ti ti-list-check" style="font-size:13px;"></i> 할 일</span>
+        <button id="tdv-edit"><i class="ti ti-pencil"></i> 편집</button>
+      </div>
+    </div>
+  </div>
+  
   <div id="gcal-detail-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; align-items: center; justify-content: center; padding: 1rem;">
     <div style="background: var(--color-background-primary); border-radius: var(--border-radius-lg); padding: 1.25rem; width: 100%; max-width: 400px; border: 0.5px solid var(--color-border-tertiary); box-shadow: var(--shadow-xl);">
       <div style="display:flex; align-items:flex-start; gap:8px; margin-bottom:16px;">
@@ -1095,7 +1114,7 @@ const storage = {
         if (t.done) item.style.opacity = '0.5';
         const catTagHtml = `<span class="todo-cat-tag" style="background:${hexToRgba(cat.color, 0.15)}; color:${textColorForBg(cat.color)};">${cat.name}</span>`;
         item.innerHTML = `<i class="ti ti-checkbox" style="font-size:14px; color:#A8541A;"></i><span class="event-time">할 일</span><span class="event-title"${t.done ? ' style="text-decoration:line-through;"' : ''}>${t.text}</span>` + catTagHtml;
-        item.onclick = () => openTodoModal(t);
+        item.onclick = () => openTodoDetail(t);
         list.appendChild(item);
       });
     }
@@ -1176,7 +1195,7 @@ const storage = {
           item.innerHTML = `<span style="width:14px; display:inline-flex; justify-content:center; flex-shrink:0;"><i class="ti ti-checkbox" style="font-size:14px; color:#A8541A;"></i></span><span class="event-time">할 일</span><span class="event-title"${t.done ? ' style="text-decoration:line-through;"' : ''}>${t.text}</span>` + catTagHtml;
           item.onclick = (e) => {
             e.stopPropagation();
-            openTodoModal(t);
+            openTodoDetail(t);
           };
           contentBox.appendChild(item);
         });
@@ -1370,6 +1389,34 @@ const storage = {
   document.getElementById('gd-close').onclick = closeGcalDetail;
   document.getElementById('gcal-detail-overlay').onclick = (e) => { if (e.target.id === 'gcal-detail-overlay') closeGcalDetail(); };
   document.getElementById('gd-hide').onclick = () => { if (gcalDetailId) hideGEvent(gcalDetailId); closeGcalDetail(); };
+
+  // ===== 할 일 세부정보 모달 (편집 버튼 포함) =====
+  let todoDetailId = null;
+  function openTodoDetail(t) {
+    todoDetailId = t.id;
+    const cat = getCat(t.categoryId);
+    document.getElementById('tdv-title').textContent = t.text;
+    document.getElementById('tdv-title').style.textDecoration = t.done ? 'line-through' : 'none';
+    const dueRow = document.getElementById('tdv-due-row');
+    if (t.due) {
+      const d = new Date(t.due + 'T00:00:00');
+      const dn = ['일','월','화','수','목','금','토'][d.getDay()];
+      const info = dueInfo(t.due);
+      document.getElementById('tdv-due').textContent = `${d.getMonth()+1}월 ${d.getDate()}일 (${dn})` + (info && !t.done ? ` · ${info.label}` : '');
+      dueRow.style.display = 'flex';
+    } else dueRow.style.display = 'none';
+    document.getElementById('tdv-cat').textContent = cat.name;
+    document.getElementById('tdv-status').textContent = t.done ? '완료' : '진행 중';
+    document.getElementById('todo-detail-overlay').style.display = 'flex';
+  }
+  function closeTodoDetail() { document.getElementById('todo-detail-overlay').style.display = 'none'; todoDetailId = null; }
+  document.getElementById('tdv-close').onclick = closeTodoDetail;
+  document.getElementById('todo-detail-overlay').onclick = (e) => { if (e.target.id === 'todo-detail-overlay') closeTodoDetail(); };
+  document.getElementById('tdv-edit').onclick = () => {
+    const t = todos.find(x => x.id === todoDetailId);
+    closeTodoDetail();
+    if (t) openTodoModal(t);
+  };
   
   function renderTodos() {
     newTodoCatPicker.setValue('');
