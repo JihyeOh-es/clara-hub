@@ -1095,7 +1095,7 @@ const storage = {
         if (t.done) item.style.opacity = '0.5';
         const catTagHtml = `<span class="todo-cat-tag" style="background:${hexToRgba(cat.color, 0.15)}; color:${textColorForBg(cat.color)};">${cat.name}</span>`;
         item.innerHTML = `<i class="ti ti-checkbox" style="font-size:14px; color:#A8541A;"></i><span class="event-time">할 일</span><span class="event-title"${t.done ? ' style="text-decoration:line-through;"' : ''}>${t.text}</span>` + catTagHtml;
-        item.onclick = () => document.querySelector('.nav-tab[data-view="todos"]').click();
+        item.onclick = () => openTodoModal(t);
         list.appendChild(item);
       });
     }
@@ -1176,7 +1176,7 @@ const storage = {
           item.innerHTML = `<span style="width:14px; display:inline-flex; justify-content:center; flex-shrink:0;"><i class="ti ti-checkbox" style="font-size:14px; color:#A8541A;"></i></span><span class="event-time">할 일</span><span class="event-title"${t.done ? ' style="text-decoration:line-through;"' : ''}>${t.text}</span>` + catTagHtml;
           item.onclick = (e) => {
             e.stopPropagation();
-            document.querySelector('.nav-tab[data-view="todos"]').click();
+            openTodoModal(t);
           };
           contentBox.appendChild(item);
         });
