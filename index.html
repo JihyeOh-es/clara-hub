@@ -1161,7 +1161,7 @@ const storage = {
           item.className = 'event-item';
           item.onclick = (e) => { e.stopPropagation(); openEventModal(ev); };
           const catTagHtml = `<span class="todo-cat-tag" style="background:${hexToRgba(cat.color, 0.15)}; color:${textColorForBg(cat.color)};">${cat.name}</span>`;
-          item.innerHTML = `<span class="event-dot" style="background:${cat.color};"></span><span class="event-time">${ev.start ? fmtTimeKR(ev.start) : '종일'}</span><span class="event-title">${ev.title}</span>` + (ev.place ? `<span class="event-place"><i class="ti ti-map-pin" style="font-size:11px;"></i> ${ev.place}</span>` : '') + catTagHtml;
+          item.innerHTML = `<span class="event-dot" style="background:${cat.color};"></span><span class="event-time">${ev.start ? fmtTimeKR(ev.start) : '종일'}</span><span class="event-title">${ev.title}</span>` + catTagHtml;
           contentBox.appendChild(item);
         });
         // 할 일은 그 다음
