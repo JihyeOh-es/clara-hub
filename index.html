@@ -779,7 +779,7 @@ const storage = {
     try { const r = storage.get(STORE_CATS); categories = r ? JSON.parse(r.value) : DEFAULT_CATS; } catch(e) { categories = DEFAULT_CATS; }
   }
   function save(key, val) { storage.set(key, JSON.stringify(val)); }
-  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+  function uid() { return crypto.randomUUID(); }
   const NO_CAT = { id: '', name: '미분류', color: '#B0AEA3' };
   function getCat(id) { if (!id) return NO_CAT; return categories.find(c => c.id === id) || NO_CAT; }
   function acctPrefix(email) { return /@devsisters\.com$/i.test(email) ? '[회사] ' : ''; }
@@ -2203,6 +2203,17 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
   editTodoCatPicker = createCatPicker(document.getElementById('td-cat-wrap'), { allowNone: true });
   renderMonth();
   updateTodayBtn();
+
+  // ===== Supabase 동기화: 로그인 상태 변화 수신 (지금은 확인만) =====
+  window.addEventListener("auth-changed", (e) => {
+    const user = e.detail;
+    if (user) {
+      console.log("🔗 메인 앱이 로그인 인식함 · user_id =", user.id);
+      // 다음 단계: 여기서 클라우드 데이터 내려받기(pull)
+    } else {
+      console.log("🔗 메인 앱: 로그아웃 상태");
+    }
+  });
 })();
 
 // ==================== PWA Service Worker Registration ====================
@@ -2220,6 +2231,7 @@ if ('serviceWorker' in navigator) {
   const { createClient } = supabase;          // 라이브러리가 만든 전역
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   window.sb = sb;                             // 콘솔에서 꺼내 테스트용
+  window.currentUser = null;                  // 지금 로그인한 사람 (메인 앱이 읽음)
 
   // 화면에 떠 있는 임시 로그인 버튼 (기존 UI 안 건드림)
   const btn = document.createElement("button");
@@ -2239,6 +2251,7 @@ if ('serviceWorker' in navigator) {
   async function signOut() { await sb.auth.signOut(); }
 
   function render(session) {
+    window.currentUser = session ? session.user : null;
     if (session) {
       btn.textContent = "로그아웃 (" + session.user.email + ")";
       btn.onclick = signOut;
@@ -2247,6 +2260,8 @@ if ('serviceWorker' in navigator) {
       btn.textContent = "구글로 로그인";
       btn.onclick = signIn;
     }
+    // 메인 앱에 "로그인 상태 바뀜" 신호 보내기
+    window.dispatchEvent(new CustomEvent("auth-changed", { detail: window.currentUser }));
   }
 
   sb.auth.getSession().then(({ data }) => render(data.session));
