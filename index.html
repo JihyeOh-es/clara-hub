@@ -353,6 +353,8 @@
     }
   </style>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <!-- Supabase 라이브러리 -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -2209,6 +2211,47 @@ if ('serviceWorker' in navigator) {
   if (window.caches) caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
 }
 </script>
+<!-- ===== Supabase 로그인 (4단계: 로그인만, 저장로직은 아직 안 건드림) ===== -->
+<script>
+(function () {
+  const SUPABASE_URL = "https://여기-네-프로젝트.supabase.co";   // ← Settings→API의 Project URL
+  const SUPABASE_ANON_KEY = "여기-anon-public-키";              // ← 같은 화면의 anon public 키
 
+  const { createClient } = supabase;          // 라이브러리가 만든 전역
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  window.sb = sb;                             // 콘솔에서 꺼내 테스트용
+
+  // 화면에 떠 있는 임시 로그인 버튼 (기존 UI 안 건드림)
+  const btn = document.createElement("button");
+  btn.id = "sb-auth-btn";
+  btn.style.cssText =
+    "position:fixed;top:10px;right:10px;z-index:9999;padding:8px 14px;" +
+    "border:none;border-radius:10px;background:#7F77DD;color:#fff;" +
+    "font-size:13px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.15);";
+  document.body.appendChild(btn);
+
+  async function signIn() {
+    await sb.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: window.location.origin + window.location.pathname }
+    });
+  }
+  async function signOut() { await sb.auth.signOut(); }
+
+  function render(session) {
+    if (session) {
+      btn.textContent = "로그아웃 (" + session.user.email + ")";
+      btn.onclick = signOut;
+      console.log("✅ 로그인됨 · user_id =", session.user.id);
+    } else {
+      btn.textContent = "구글로 로그인";
+      btn.onclick = signIn;
+    }
+  }
+
+  sb.auth.getSession().then(({ data }) => render(data.session));
+  sb.auth.onAuthStateChange((_e, session) => render(session));
+})();
+</script>
 </body>
 </html> 
