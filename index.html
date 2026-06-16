@@ -780,6 +780,25 @@ const storage = {
   }
   function save(key, val) { storage.set(key, JSON.stringify(val)); }
   function uid() { return crypto.randomUUID(); }
+  function isUuid(s) { return typeof s === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s); }
+  // 옛 id(c1 등)를 UUID로 한 번만 정리. 로컬 전용, 화면 변화 없음.
+  function normalizeLocalIds() {
+    if (storage.get('planner:idsNormalized')) return;   // 이미 했으면 건너뜀
+    const idMap = {};                                    // 옛 카테고리 id -> 새 UUID
+    categories.forEach(c => { if (!isUuid(c.id)) { const nu = crypto.randomUUID(); idMap[c.id] = nu; c.id = nu; } });
+    function fixRef(item) {
+      if (item.categoryId && idMap[item.categoryId]) item.categoryId = idMap[item.categoryId];
+      if (item.categoryId && !isUuid(item.categoryId)) item.categoryId = null;  // 끊긴 옛 참조 → 미분류
+      if (!isUuid(item.id)) item.id = crypto.randomUUID();
+    }
+    todos.forEach(fixRef);
+    events.forEach(fixRef);
+    save(STORE_CATS, categories);
+    save(STORE_TODOS, todos);
+    save(STORE_EVENTS, events);
+    storage.set('planner:idsNormalized', '1');
+    console.log('🧹 옛 id 정리 완료 (UUID로 전환)');
+  }
   const NO_CAT = { id: '', name: '미분류', color: '#B0AEA3' };
   function getCat(id) { if (!id) return NO_CAT; return categories.find(c => c.id === id) || NO_CAT; }
   function acctPrefix(email) { return /@devsisters\.com$/i.test(email) ? '[회사] ' : ''; }
@@ -2199,6 +2218,7 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
   { const b = document.getElementById('sync-now-btn'); if (b) b.onclick = () => syncAllGoogle(b); }
 
   loadAll();
+  normalizeLocalIds();   // 옛 id를 UUID로 정리 (로컬만, 1회)
   newTodoCatPicker = createCatPicker(document.getElementById('new-todo-cat-wrap'), { allowNone: true });
   editTodoCatPicker = createCatPicker(document.getElementById('td-cat-wrap'), { allowNone: true });
   renderMonth();
