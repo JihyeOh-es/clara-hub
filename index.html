@@ -461,6 +461,14 @@
   </div>
 
   <div id="view-sync" class="view" style="display: none;">
+    <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:12px; margin-bottom:1.25rem; background:var(--color-background-primary); border:0.5px solid var(--color-border-tertiary); border-radius:var(--border-radius-md); box-shadow:var(--shadow-sm);">
+      <i class="ti ti-cloud" style="font-size:20px; color:#7F77DD; flex-shrink:0;"></i>
+      <div style="flex:1; min-width:0;">
+        <div style="font-size:14px; font-weight:500;">클라우드 동기화</div>
+        <div style="font-size:11px; color:var(--color-text-tertiary);">로그인하면 기기 간 데이터가 동기화돼요.</div>
+      </div>
+      <div id="sb-auth-slot"></div>
+    </div>
     <p style="font-size:13px; color: var(--color-text-secondary); margin: 0 0 1rem; line-height:1.5;">구글 계정을 연결하면 캘린더 일정을 읽기 전용으로 가져옵니다.</p>
     <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom: 1.25rem;">
       <button id="connect-google-btn" class="add-fab"><i class="ti ti-plus"></i><span>구글 계정 연결</span></button>
@@ -2253,14 +2261,18 @@ if ('serviceWorker' in navigator) {
   window.sb = sb;                             // 콘솔에서 꺼내 테스트용
   window.currentUser = null;                  // 지금 로그인한 사람 (메인 앱이 읽음)
 
-  // 화면에 떠 있는 임시 로그인 버튼 (기존 UI 안 건드림)
+  // 동기화 탭 안의 로그인 영역에 버튼을 넣음 (없으면 잠깐 기다렸다 다시 시도)
   const btn = document.createElement("button");
   btn.id = "sb-auth-btn";
-  btn.style.cssText =
-    "position:fixed;top:10px;right:10px;z-index:9999;padding:8px 14px;" +
-    "border:none;border-radius:10px;background:#7F77DD;color:#fff;" +
-    "font-size:13px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.15);";
-  document.body.appendChild(btn);
+  btn.className = "add-fab";
+  function mountAuthBtn() {
+    const slot = document.getElementById("sb-auth-slot");
+    if (slot) { slot.appendChild(btn); return true; }
+    return false;
+  }
+  if (!mountAuthBtn()) {
+    const iv = setInterval(() => { if (mountAuthBtn()) clearInterval(iv); }, 200);
+  }
 
   async function signIn() {
     await sb.auth.signInWithOAuth({
