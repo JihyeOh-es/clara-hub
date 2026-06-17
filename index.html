@@ -816,14 +816,16 @@ const storage = {
       id: t.id, user_id: window.currentUser.id,
       title: t.text, due_date: t.due || null,
       is_done: !!t.done, category_id: t.categoryId || null,
-      sort_order: 0, is_deleted: false
+      sort_order: 0, is_deleted: false,
+      updated_at: t.updatedAt || nowISO()
     };
   }
   function rowFromCategory(c) {
     return {
       id: c.id, user_id: window.currentUser.id,
       name: c.name, color: c.color || null,
-      sort_order: 0, gcal_key: c.gcalKey || null, is_deleted: false
+      sort_order: 0, gcal_key: c.gcalKey || null, is_deleted: false,
+      updated_at: c.updatedAt || nowISO()
     };
   }
   function rowFromEvent(e) {
@@ -833,7 +835,8 @@ const storage = {
       start_time: e.start || null, end_time: e.end || null,
       is_all_day: !e.start, place: e.place || null,
       memo: e.memo || null, category_id: e.categoryId || null,
-      is_deleted: false
+      is_deleted: false,
+      updated_at: e.updatedAt || nowISO()
     };
   }
 
@@ -901,6 +904,9 @@ const storage = {
     }
   }
   function uid() { return crypto.randomUUID(); }
+  function nowISO() { return new Date().toISOString(); }
+  // 항목이 만들어지거나 바뀔 때 수정시각 기록 (LWW 비교용)
+  function touch(item) { item.updatedAt = nowISO(); return item; }
   function isUuid(s) { return typeof s === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s); }
   // 옛 id(c1 등)를 UUID로 한 번만 정리. 로컬 전용, 화면 변화 없음.
   function normalizeLocalIds() {
@@ -1600,6 +1606,7 @@ const storage = {
       check.onclick = (e) => {
         e.stopPropagation();
         t.done = !t.done;
+        touch(t);
         save(STORE_TODOS, todos);
         renderTodos();
         renderMonth();
@@ -1661,12 +1668,12 @@ const storage = {
     }
     input.classList.remove('error');
     errorEl.style.display = 'none';
-    todos.unshift({
+    todos.unshift(touch({
       id: uid(), text,
       categoryId: newTodoCatPicker.getValue() || null,
       due: document.getElementById('new-todo-due').value || null,
       done: false, createdAt: Date.now()
-    });
+    }));
     input.value = '';
     document.getElementById('new-todo-due').value = '';
     updateDueButton();
@@ -1761,6 +1768,7 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
     t.text = text;
     t.categoryId = editTodoCatPicker.getValue() || null;
     t.due = document.getElementById('td-due').value || null;
+    touch(t);
     save(STORE_TODOS, todos);
     closeTodoModal();
     renderTodos();
