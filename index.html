@@ -767,6 +767,7 @@ const storage = {
     overlay.onclick = (e) => { if (e.target === overlay) cleanup(); };
 
     okBtn.onclick = () => {
+      let delEventIds = [], delTodoIds = [];
       if (total > 0) {
         const action = document.querySelector('input[name="cat-delete-action"]:checked').value;
         if (action === 'move') {
@@ -774,10 +775,22 @@ const storage = {
           events.forEach(e => { if (e.categoryId === cat.id) e.categoryId = targetId; });
           todos.forEach(t => { if (t.categoryId === cat.id) t.categoryId = targetId; });
         } else {
+          delEventIds = events.filter(e => e.categoryId === cat.id).map(e => e.id);
+          delTodoIds = todos.filter(t => t.categoryId === cat.id).map(t => t.id);
           events = events.filter(e => e.categoryId !== cat.id);
           todos = todos.filter(t => t.categoryId !== cat.id);
         }
       }
+      // 클라우드 반영: 옮김(move)이면 할 일/일정이 이미 다른 카테고리로 바뀌어 save→push로 올라감.
+      // 함께 삭제(delete)면 빠진 항목들을 클라우드에도 지움 표시.
+      if (total > 0) {
+        const action = document.querySelector('input[name="cat-delete-action"]:checked').value;
+        if (action === 'delete') {
+          softDelete('events', delEventIds);
+          softDelete('todos', delTodoIds);
+        }
+      }
+      softDelete('categories', cat.id);   // 카테고리 자체도 지움 표시
       categories = categories.filter(c => c.id !== cat.id);
       save(STORE_CATS, categories);
       save(STORE_EVENTS, events);
@@ -1486,6 +1499,7 @@ const storage = {
     renderMonth(); renderWeek();
   };
   document.getElementById('ev-delete').onclick = () => {
+    softDelete('events', editingEventId);   // 클라우드에 지움 표시
     events = events.filter(e => e.id !== editingEventId);
     save(STORE_EVENTS, events);
     closeEventModal();
@@ -1710,8 +1724,10 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
     };
   });
   document.getElementById('clear-done').onclick = () => {
+    const removedIds = todos.filter(t => t.done).map(t => t.id);   // 지울 것들 id 먼저 확보
     todos = todos.filter(t => !t.done);
     save(STORE_TODOS, todos);
+    softDelete('todos', removedIds);   // 여러 개 한 번에 지움 표시
     renderTodos();
     renderMonth();
     renderWeek();
