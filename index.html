@@ -805,7 +805,7 @@ const storage = {
   function loadAll() {
     try { const r = storage.get(STORE_EVENTS); events = r ? JSON.parse(r.value) : []; } catch(e) { events = []; }
     try { const r = storage.get(STORE_TODOS); todos = r ? JSON.parse(r.value) : []; } catch(e) { todos = []; }
-    try { const r = storage.get(STORE_CATS); categories = r ? JSON.parse(r.value) : DEFAULT_CATS; } catch(e) { categories = DEFAULT_CATS; }
+    try { const r = storage.get(STORE_CATS); categories = r ? JSON.parse(r.value) : []; } catch(e) { categories = []; }
   }
   function save(key, val) { storage.set(key, JSON.stringify(val)); pushToCloud(key); }
 
