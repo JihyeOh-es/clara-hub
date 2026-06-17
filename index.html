@@ -1243,7 +1243,7 @@ const storage = {
     // + 일정 추가 버튼 (선택한 날짜로 모달 열기)
     const addBtn = document.createElement('button');
     addBtn.className = 'today-btn';
-    addBtn.style.cssText = 'width:100%; justify-content:center; margin-bottom:8px;';
+    addBtn.style.cssText = 'width:100%; justify-content:center; margin-bottom:8px; background:#EFEDFA; border-color:#D9D4F0; color:#5D54C2; box-shadow:var(--shadow-sm);';
     addBtn.innerHTML = '<i class="ti ti-plus"></i> 일정 추가';
     addBtn.onclick = (e) => { e.stopPropagation(); openEventModal(null, fmtDate(d)); };
     list.appendChild(addBtn);
@@ -1324,6 +1324,14 @@ const storage = {
       const contentBox = document.createElement('div');
       contentBox.className = 'day-content';
       block.appendChild(contentBox);
+
+      // + 일정 추가 버튼 (이 날짜로 모달 열기)
+      const addBtn = document.createElement('button');
+      addBtn.className = 'today-btn';
+      addBtn.style.cssText = 'width:100%; justify-content:center; margin-bottom:6px; background:#EFEDFA; border-color:#D9D4F0; color:#5D54C2; box-shadow:var(--shadow-sm);';
+      addBtn.innerHTML = '<i class="ti ti-plus"></i> 일정 추가';
+      addBtn.onclick = (e) => { e.stopPropagation(); openEventModal(null, dateStr); };
+      contentBox.appendChild(addBtn);
 
       if (dayEvents.length === 0 && dayTodos.length === 0) {
         const empty = document.createElement('div');
