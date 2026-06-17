@@ -818,6 +818,23 @@ const storage = {
     };
   }
 
+  async function pushCategories(rows) {
+    // 직접 만든 카테고리: id로 충돌 판단 (gcal_key 없음)
+    const mine = rows.filter(r => !r.gcal_key);
+    // 구글 카테고리: gcal_key로 충돌 판단 (id는 기기마다 달라도 같은 캘린더면 합쳐짐)
+    const gcal = rows.filter(r => r.gcal_key);
+    if (mine.length) {
+      const { error } = await window.sb.from('categories').upsert(mine);
+      if (error) console.error('☁️ push 실패 (categories/mine):', error.message);
+      else console.log('☁️ push 성공 (categories/mine): ' + mine.length + '개');
+    }
+    if (gcal.length) {
+      const { error } = await window.sb.from('categories').upsert(gcal, { onConflict: 'user_id,gcal_key' });
+      if (error) console.error('☁️ push 실패 (categories/gcal):', error.message);
+      else console.log('☁️ push 성공 (categories/gcal): ' + gcal.length + '개');
+    }
+  }
+
   async function pushTable(table, rows) {
     if (rows.length === 0) return;
     const { error } = await window.sb.from(table).upsert(rows);
@@ -829,9 +846,9 @@ const storage = {
     if (!window.currentUser || !window.sb) return;   // 로그인 안 했으면 조용히 패스
     try {
       // 카테고리는 항상 먼저 올림 (할 일/일정이 카테고리를 참조하므로)
-      const catRows = categories.filter(c => !c.gcalKey).map(rowFromCategory);
+      const catRows = categories.map(rowFromCategory);   // 구글 카테고리 포함 (B 방식)
       if (key === STORE_TODOS || key === STORE_EVENTS || key === STORE_CATS) {
-        await pushTable('categories', catRows);
+        await pushCategories(catRows);
       }
       if (key === STORE_TODOS)       await pushTable('todos',  todos.map(rowFromTodo));
       else if (key === STORE_EVENTS) await pushTable('events', events.map(rowFromEvent));
