@@ -1,6 +1,6 @@
 // Clara's Hub Service Worker
 // 새 버전 배포 시 아래 CACHE_VERSION 숫자만 올리면 폰이 자동으로 갈아끼움
-const CACHE_VERSION = 'claras-hub-v12';
+const CACHE_VERSION = 'claras-hub-v13';
 
 // 오프라인을 위해 미리 캐시할 정적 자원 (잘 안 바뀌는 것들)
 const PRECACHE = [
