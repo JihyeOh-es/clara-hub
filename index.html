@@ -772,8 +772,8 @@ const storage = {
         const action = document.querySelector('input[name="cat-delete-action"]:checked').value;
         if (action === 'move') {
           const targetId = targetSelect.value;
-          events.forEach(e => { if (e.categoryId === cat.id) e.categoryId = targetId; });
-          todos.forEach(t => { if (t.categoryId === cat.id) t.categoryId = targetId; });
+          events.forEach(e => { if (e.categoryId === cat.id) { e.categoryId = targetId; touch(e); } });
+          todos.forEach(t => { if (t.categoryId === cat.id) { t.categoryId = targetId; touch(t); } });
         } else {
           delEventIds = events.filter(e => e.categoryId === cat.id).map(e => e.id);
           delTodoIds = todos.filter(t => t.categoryId === cat.id).map(t => t.id);
@@ -1489,7 +1489,7 @@ const storage = {
       titleInput.focus();
       return;
     }
-    const newEv = {
+    const newEv = touch({
       id: editingEventId || uid(),
       title, categoryId: document.getElementById('ev-cat').value,
       date: document.getElementById('ev-date').value,
@@ -1497,7 +1497,7 @@ const storage = {
       end: endPicker.getValue(),
       place: document.getElementById('ev-place').value.trim(),
       memo: document.getElementById('ev-memo').value.trim()
-    };
+    });
     if (editingEventId) { const i = events.findIndex(e => e.id === editingEventId); if (i>=0) events[i] = newEv; }
     else events.push(newEv);
     save(STORE_EVENTS, events);
@@ -1909,6 +1909,7 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
 
       cat.name = newName;
       cat.color = colorInput.value;
+      touch(cat);
       save(STORE_CATS, categories);
       cleanup();
       renderCategories();
@@ -2015,7 +2016,7 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
       return;
     }
 
-    categories.push({ id: uid(), name, color: document.getElementById('new-cat-color').value });
+    categories.push(touch({ id: uid(), name, color: document.getElementById('new-cat-color').value }));
     nameInput.value = '';
     // 다음 카테고리 추가용으로 색 초기화 (첫 번째 파스텔로)
     selectColor(PASTEL_COLORS[0]);
