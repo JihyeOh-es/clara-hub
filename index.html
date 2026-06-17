@@ -1240,6 +1240,14 @@ const storage = {
     titleEl.textContent = `${d.getMonth()+1}월 ${d.getDate()}일 (${dayNames[d.getDay()]})`;
     list.innerHTML = '';
 
+    // + 일정 추가 버튼 (선택한 날짜로 모달 열기)
+    const addBtn = document.createElement('button');
+    addBtn.className = 'today-btn';
+    addBtn.style.cssText = 'width:100%; justify-content:center; margin-bottom:8px;';
+    addBtn.innerHTML = '<i class="ti ti-plus"></i> 일정 추가';
+    addBtn.onclick = (e) => { e.stopPropagation(); openEventModal(null, fmtDate(d)); };
+    list.appendChild(addBtn);
+
     if (dayEvents.length === 0 && (!dayTodos || dayTodos.length === 0)) {
       const empty = document.createElement('div');
       empty.style.cssText = 'font-size: 13px; color: var(--color-text-tertiary); padding: 4px 0;';
