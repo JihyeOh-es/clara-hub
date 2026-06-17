@@ -788,7 +788,52 @@ const storage = {
     try { const r = storage.get(STORE_TODOS); todos = r ? JSON.parse(r.value) : []; } catch(e) { todos = []; }
     try { const r = storage.get(STORE_CATS); categories = r ? JSON.parse(r.value) : DEFAULT_CATS; } catch(e) { categories = DEFAULT_CATS; }
   }
-  function save(key, val) { storage.set(key, JSON.stringify(val)); }
+  function save(key, val) { storage.set(key, JSON.stringify(val)); pushToCloud(key); }
+
+  // ===== Supabase Push (쓰기): 로컬 저장 후 클라우드에 올림 =====
+  // 앱의 칸 이름 → 표의 칸 이름으로 변환 (매핑)
+  function rowFromTodo(t) {
+    return {
+      id: t.id, user_id: window.currentUser.id,
+      title: t.text, due_date: t.due || null,
+      is_done: !!t.done, category_id: t.categoryId || null,
+      sort_order: 0, is_deleted: false
+    };
+  }
+  function rowFromCategory(c) {
+    return {
+      id: c.id, user_id: window.currentUser.id,
+      name: c.name, color: c.color || null,
+      sort_order: 0, gcal_key: c.gcalKey || null, is_deleted: false
+    };
+  }
+  function rowFromEvent(e) {
+    return {
+      id: e.id, user_id: window.currentUser.id,
+      title: e.title, event_date: e.date,
+      start_time: e.start || null, end_time: e.end || null,
+      is_all_day: !e.start, place: e.place || null,
+      memo: e.memo || null, category_id: e.categoryId || null,
+      is_deleted: false
+    };
+  }
+
+  async function pushToCloud(key) {
+    if (!window.currentUser || !window.sb) return;   // 로그인 안 했으면 조용히 패스
+    try {
+      let table, rows;
+      if (key === STORE_TODOS)      { table = 'todos';      rows = todos.map(rowFromTodo); }
+      else if (key === STORE_CATS)  { table = 'categories'; rows = categories.filter(c => !c.gcalKey).map(rowFromCategory); }
+      else if (key === STORE_EVENTS){ table = 'events';     rows = events.map(rowFromEvent); }
+      else return;   // 구글 캐시 등 동기화 대상 아닌 키는 무시
+      if (rows.length === 0) return;
+      const { error } = await window.sb.from(table).upsert(rows);
+      if (error) console.error('☁️ push 실패 (' + table + '):', error.message);
+      else console.log('☁️ push 성공 (' + table + '): ' + rows.length + '개');
+    } catch (e) {
+      console.error('☁️ push 예외:', e);
+    }
+  }
   function uid() { return crypto.randomUUID(); }
   function isUuid(s) { return typeof s === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s); }
   // 옛 id(c1 등)를 UUID로 한 번만 정리. 로컬 전용, 화면 변화 없음.
