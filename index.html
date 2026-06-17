@@ -858,6 +858,20 @@ const storage = {
     else console.log('☁️ push 성공 (' + table + '): ' + rows.length + '개');
   }
 
+  // 소프트 삭제: 로컬에선 이미 배열에서 빠진 항목을, 클라우드엔 "지움 표시"로 보냄
+  async function softDelete(table, ids) {
+    if (!window.currentUser || !window.sb) return;   // 로그인 안 했으면 패스 (로컬만 삭제됨)
+    const list = Array.isArray(ids) ? ids : [ids];
+    if (list.length === 0) return;
+    try {
+      const { error } = await window.sb.from(table)
+        .update({ is_deleted: true })
+        .in('id', list);
+      if (error) console.error('🗑️ 삭제 동기화 실패 (' + table + '):', error.message);
+      else console.log('🗑️ 삭제 동기화 (' + table + '): ' + list.length + '개');
+    } catch (e) { console.error('🗑️ 삭제 예외:', e); }
+  }
+
   async function pushToCloud(key) {
     if (!window.currentUser || !window.sb) return;   // 로그인 안 했으면 조용히 패스
     try {
@@ -1608,6 +1622,7 @@ const storage = {
         e.stopPropagation();
         todos = todos.filter(x => x.id !== t.id);
         save(STORE_TODOS, todos);
+        softDelete('todos', t.id);   // 클라우드에 지움 표시
         renderTodos();
         renderMonth();
         renderWeek();
@@ -1737,6 +1752,7 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
     renderWeek();
   };
   document.getElementById('td-delete').onclick = () => {
+    softDelete('todos', editingTodoId);   // 클라우드에 지움 표시
     todos = todos.filter(x => x.id !== editingTodoId);
     save(STORE_TODOS, todos);
     closeTodoModal();
