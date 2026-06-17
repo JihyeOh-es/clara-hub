@@ -2570,10 +2570,32 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
   });
 })();
 
-// ==================== PWA Service Worker Registration ====================
+// ==================== PWA Service Worker (등록 + 자동 업데이트) ====================
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
-  if (window.caches) caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js').then((reg) => {
+      // 새 버전 감지 시 즉시 적용 + 한 번만 새로고침
+      reg.addEventListener('updatefound', () => {
+        const nw = reg.installing;
+        if (!nw) return;
+        nw.addEventListener('statechange', () => {
+          if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+            console.log('🔄 새 버전 감지 → 적용');
+          }
+        });
+      });
+      // 주기적으로 업데이트 확인 (앱 켜둔 채로도 새 버전 체크)
+      setInterval(() => reg.update(), 60 * 1000);
+    }).catch((e) => console.warn('SW 등록 실패:', e));
+
+    // 컨트롤러가 바뀌면(새 SW 활성화) 페이지 한 번 새로고침해 최신 코드로
+    let refreshed = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (refreshed) return;
+      refreshed = true;
+      window.location.reload();
+    });
+  });
 }
 </script>
 <!-- ===== Supabase 로그인 (4단계: 로그인만, 저장로직은 아직 안 건드림) ===== -->
