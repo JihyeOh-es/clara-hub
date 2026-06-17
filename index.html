@@ -874,7 +874,60 @@ const storage = {
     else console.log('☁️ push 성공 (' + table + '): ' + rows.length + '개');
   }
 
-  // 소프트 삭제: 로컬에선 이미 배열에서 빠진 항목을, 클라우드엔 "지움 표시"로 보냄
+  // ===== Pull (읽기): 클라우드에서 가져와 로컬과 병합 =====
+  // 두 항목 중 updatedAt이 더 최근인 쪽을 고름 (LWW)
+  function pickNewer(localItem, cloudRow) {
+    const lt = localItem && localItem.updatedAt ? Date.parse(localItem.updatedAt) : 0;
+    const ct = cloudRow && cloudRow.updated_at ? Date.parse(cloudRow.updated_at) : 0;
+    return ct >= lt ? 'cloud' : 'local';
+  }
+  // 클라우드 행 → 앱 형식으로 역변환
+  function todoFromRow(r) { return { id: r.id, text: r.title, due: r.due_date, done: r.is_done, categoryId: r.category_id, updatedAt: r.updated_at, createdAt: Date.parse(r.created_at) || Date.now() }; }
+  function categoryFromRow(r) { return { id: r.id, name: r.name, color: r.color, gcalKey: r.gcal_key || undefined, updatedAt: r.updated_at }; }
+  function eventFromRow(r) { return { id: r.id, title: r.title, date: r.event_date, start: r.start_time || '', end: r.end_time || '', place: r.place || '', memo: r.memo || '', categoryId: r.category_id, updatedAt: r.updated_at }; }
+
+  function mergePlan(localArr, cloudRows, fromRow) {
+    const localById = {}; localArr.forEach(x => localById[x.id] = x);
+    const cloudById = {}; cloudRows.forEach(r => cloudById[r.id] = r);
+    const plan = { fromCloud: [], deleted: [], localOnly: [], conflictWonByCloud: 0, conflictWonByLocal: 0 };
+    cloudRows.forEach(r => {
+      const local = localById[r.id];
+      if (r.is_deleted) { if (local) plan.deleted.push(r.id); return; }
+      if (!local) { plan.fromCloud.push(fromRow(r)); return; }
+      // 양쪽 다 있음 → LWW
+      if (pickNewer(local, r) === 'cloud') { plan.fromCloud.push(fromRow(r)); plan.conflictWonByCloud++; }
+      else plan.conflictWonByLocal++;
+    });
+    localArr.forEach(x => { if (!cloudById[x.id]) plan.localOnly.push(x.id); });
+    return plan;
+  }
+
+  async function pullFromCloud({ preview = false } = {}) {
+    if (!window.currentUser || !window.sb) return;
+    try {
+      const [tRes, cRes, eRes] = await Promise.all([
+        window.sb.from('todos').select('*'),
+        window.sb.from('categories').select('*'),
+        window.sb.from('events').select('*')
+      ]);
+      if (tRes.error || cRes.error || eRes.error) {
+        console.warn('📥 pull 실패(네트워크?):', tRes.error || cRes.error || eRes.error);
+        return;   // 오프라인 등 → 조용히 로컬 유지
+      }
+      const planC = mergePlan(categories, cRes.data, categoryFromRow);
+      const planT = mergePlan(todos, tRes.data, todoFromRow);
+      const planE = mergePlan(events, eRes.data, eventFromRow);
+      console.log('📥 pull 미리보기 (화면 반영 안 함):');
+      console.log('  카테고리:', planC);
+      console.log('  할 일   :', planT);
+      console.log('  일정    :', planE);
+      if (!preview) {
+        console.log('  ⚠️ 실제 반영 모드는 아직 안 켬');
+      }
+    } catch (e) { console.warn('📥 pull 예외:', e); }
+  }
+
+  // 소프트 삭제: 로컬에선 이미 배열에서 빠진 항목을 클라우드엔 "지움 표시"로 보냄
   async function softDelete(table, ids) {
     if (!window.currentUser || !window.sb) return;   // 로그인 안 했으면 패스 (로컬만 삭제됨)
     const list = Array.isArray(ids) ? ids : [ids];
@@ -2435,6 +2488,7 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
     if (user) {
       console.log("🔗 메인 앱이 로그인 인식함 · user_id =", user.id);
       updateMigrateUI();   // 로그인하면 이전 버튼 상태 갱신
+      pullFromCloud({ preview: true });   // 미리보기 모드: 콘솔 출력만, 화면 반영 X
       // 다음 단계: 여기서 클라우드 데이터 내려받기(pull)
     } else {
       console.log("🔗 메인 앱: 로그아웃 상태");
