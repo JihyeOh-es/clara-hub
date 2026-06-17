@@ -818,18 +818,24 @@ const storage = {
     };
   }
 
+  async function pushTable(table, rows) {
+    if (rows.length === 0) return;
+    const { error } = await window.sb.from(table).upsert(rows);
+    if (error) console.error('☁️ push 실패 (' + table + '):', error.message);
+    else console.log('☁️ push 성공 (' + table + '): ' + rows.length + '개');
+  }
+
   async function pushToCloud(key) {
     if (!window.currentUser || !window.sb) return;   // 로그인 안 했으면 조용히 패스
     try {
-      let table, rows;
-      if (key === STORE_TODOS)      { table = 'todos';      rows = todos.map(rowFromTodo); }
-      else if (key === STORE_CATS)  { table = 'categories'; rows = categories.filter(c => !c.gcalKey).map(rowFromCategory); }
-      else if (key === STORE_EVENTS){ table = 'events';     rows = events.map(rowFromEvent); }
-      else return;   // 구글 캐시 등 동기화 대상 아닌 키는 무시
-      if (rows.length === 0) return;
-      const { error } = await window.sb.from(table).upsert(rows);
-      if (error) console.error('☁️ push 실패 (' + table + '):', error.message);
-      else console.log('☁️ push 성공 (' + table + '): ' + rows.length + '개');
+      // 카테고리는 항상 먼저 올림 (할 일/일정이 카테고리를 참조하므로)
+      const catRows = categories.filter(c => !c.gcalKey).map(rowFromCategory);
+      if (key === STORE_TODOS || key === STORE_EVENTS || key === STORE_CATS) {
+        await pushTable('categories', catRows);
+      }
+      if (key === STORE_TODOS)       await pushTable('todos',  todos.map(rowFromTodo));
+      else if (key === STORE_EVENTS) await pushTable('events', events.map(rowFromEvent));
+      // STORE_CATS는 위에서 이미 처리됨
     } catch (e) {
       console.error('☁️ push 예외:', e);
     }
