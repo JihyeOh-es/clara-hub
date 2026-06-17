@@ -829,9 +829,19 @@ const storage = {
       else console.log('☁️ push 성공 (categories/mine): ' + mine.length + '개');
     }
     if (gcal.length) {
-      const { error } = await window.sb.from('categories').upsert(gcal, { onConflict: 'user_id,gcal_key' });
+      // 부분 인덱스(partial index)는 onConflict로 못 집으니, 직접 있으면 update / 없으면 insert
+      // 1) 클라우드에 이미 있는 구글 카테고리들의 gcal_key 조회
+      const keys = gcal.map(r => r.gcal_key);
+      const { data: existing, error: selErr } = await window.sb
+        .from('categories').select('id, gcal_key').in('gcal_key', keys);
+      if (selErr) { console.error('☁️ push 실패 (categories/gcal 조회):', selErr.message); return; }
+      const existKeyToId = {};
+      (existing || []).forEach(r => { existKeyToId[r.gcal_key] = r.id; });
+      // 2) 이미 있으면 클라우드 id를 재사용(중복 방지), 없으면 새로 insert
+      const rowsToUpsert = gcal.map(r => existKeyToId[r.gcal_key] ? { ...r, id: existKeyToId[r.gcal_key] } : r);
+      const { error } = await window.sb.from('categories').upsert(rowsToUpsert);
       if (error) console.error('☁️ push 실패 (categories/gcal):', error.message);
-      else console.log('☁️ push 성공 (categories/gcal): ' + gcal.length + '개');
+      else console.log('☁️ push 성공 (categories/gcal): ' + rowsToUpsert.length + '개');
     }
   }
 
