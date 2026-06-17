@@ -470,6 +470,12 @@
         </div>
       </div>
       <div id="sb-auth-slot" style="display:flex;"></div>
+      <div id="migrate-row" style="display:none; border-top:0.5px solid var(--color-border-tertiary); padding-top:12px;">
+        <button id="migrate-btn" class="today-btn" style="width:100%; justify-content:center;">
+          <i class="ti ti-cloud-upload"></i> 기존 데이터 올리기
+        </button>
+        <div id="migrate-status" style="font-size:11px; color:var(--color-text-tertiary); margin-top:6px; text-align:center;"></div>
+      </div>
     </div>
     <p style="font-size:13px; color: var(--color-text-secondary); margin: 0 0 1rem; line-height:1.5;">구글 계정을 연결하면 캘린더 일정을 읽기 전용으로 가져옵니다.</p>
     <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom: 1.25rem;">
@@ -1102,7 +1108,7 @@ const storage = {
       document.querySelectorAll('.view').forEach(v => v.style.display = 'none');
       document.getElementById('view-' + tab.dataset.view).style.display = 'block';
       if (tab.dataset.view === 'categories') renderCategories();
-      if (tab.dataset.view === 'sync') { renderSync(); renderSyncHidden(); }
+      if (tab.dataset.view === 'sync') { renderSync(); renderSyncHidden(); updateMigrateUI(); }
       if (tab.dataset.view === 'todos') renderTodos();
       if (tab.dataset.view === 'month') renderMonth();
       if (tab.dataset.view === 'week') renderWeek();
@@ -2312,14 +2318,70 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
   renderMonth();
   updateTodayBtn();
 
-  // ===== Supabase 동기화: 로그인 상태 변화 수신 (지금은 확인만) =====
+  // ===== 기존 데이터 이전 (마이그레이션): 로컬 전체를 클라우드에 1회 업로드 =====
+  function migrateDoneKey() {
+    // user_id별로 "이전 완료" 기억 → 새 계정/기기에선 다시 활성
+    return 'planner:migrated:' + (window.currentUser ? window.currentUser.id : 'none');
+  }
+  function hasLocalData() {
+    return todos.length > 0 || events.length > 0 || categories.some(c => !c.gcalKey);
+  }
+  function updateMigrateUI() {
+    const row = document.getElementById('migrate-row');
+    const btn = document.getElementById('migrate-btn');
+    const status = document.getElementById('migrate-status');
+    if (!row) return;
+    // 로그인 안 했거나, 올릴 로컬 데이터가 없으면 숨김 (신규 유저는 안 보임)
+    if (!window.currentUser || !hasLocalData()) { row.style.display = 'none'; return; }
+    row.style.display = 'block';
+    const done = !!storage.get(migrateDoneKey());
+    if (done) {
+      btn.disabled = true;
+      btn.innerHTML = '<i class="ti ti-check"></i> 이전 완료됨';
+      btn.style.opacity = '0.6';
+      status.textContent = '이 계정의 기존 데이터는 이미 올렸어요.';
+    } else {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="ti ti-cloud-upload"></i> 기존 데이터 올리기';
+      btn.style.opacity = '1';
+      const cnt = todos.length + events.length + categories.filter(c => !c.gcalKey).length;
+      status.textContent = `처음 한 번만: 이 기기의 기존 데이터 ${cnt}개를 클라우드로 올립니다.`;
+    }
+  }
+  async function runMigration() {
+    if (!window.currentUser || !window.sb) { customAlert('먼저 로그인해주세요.'); return; }
+    const btn = document.getElementById('migrate-btn');
+    const status = document.getElementById('migrate-status');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ti ti-loader"></i> 올리는 중...';
+    try {
+      // push 엔진 그대로 재사용: 카테고리 → 할 일 → 일정 순서로 통째 업로드
+      await pushToCloud(STORE_CATS);
+      await pushToCloud(STORE_TODOS);
+      await pushToCloud(STORE_EVENTS);
+      storage.set(migrateDoneKey(), '1');   // 이 user_id는 완료 표시
+      status.textContent = '✅ 완료! 이제 다른 기기에서도 이 데이터를 볼 수 있어요.';
+      console.log('📦 마이그레이션 완료');
+      updateMigrateUI();
+    } catch (e) {
+      console.error('마이그레이션 실패:', e);
+      customAlert('이전 중 문제가 생겼어요: ' + e.message);
+      btn.disabled = false;
+      updateMigrateUI();
+    }
+  }
+  { const b = document.getElementById('migrate-btn'); if (b) b.onclick = runMigration; }
+
+  // ===== Supabase 동기화: 로그인 상태 변화 수신 =====
   window.addEventListener("auth-changed", (e) => {
     const user = e.detail;
     if (user) {
       console.log("🔗 메인 앱이 로그인 인식함 · user_id =", user.id);
+      updateMigrateUI();   // 로그인하면 이전 버튼 상태 갱신
       // 다음 단계: 여기서 클라우드 데이터 내려받기(pull)
     } else {
       console.log("🔗 메인 앱: 로그아웃 상태");
+      updateMigrateUI();   // 로그아웃하면 버튼 숨김
     }
   });
 })();
