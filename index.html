@@ -876,13 +876,30 @@ const storage = {
 
   async function pushTable(table, rows) {
     if (rows.length === 0) return;
-    // todos/events: 클라우드에 실제 존재하는 카테고리만 참조 허용 (외래키 깨짐 방지)
+    // todos/events: 카테고리 참조를 클라우드 기준으로 보정 (외래키 깨짐 방지 + 구글 카테고리 id 치환)
     if (table === 'todos' || table === 'events') {
       const catIds = [...new Set(rows.map(r => r.category_id).filter(Boolean))];
       if (catIds.length) {
-        const { data: liveCats } = await window.sb.from('categories').select('id').in('id', catIds);
-        const liveSet = new Set((liveCats || []).map(c => c.id));
-        rows = rows.map(r => (r.category_id && !liveSet.has(r.category_id)) ? { ...r, category_id: null } : r);
+        // 1) 로컬 카테고리에서 "이 id가 구글 카테고리면 gcal_key가 뭔지" 맵 만들기
+        const localIdToGcalKey = {};
+        categories.forEach(c => { if (c.gcalKey) localIdToGcalKey[c.id] = c.gcalKey; });
+        // 2) 클라우드에서 id와 gcal_key 둘 다 조회
+        const { data: liveCats } = await window.sb.from('categories').select('id, gcal_key').in('id', catIds);
+        const liveIdSet = new Set((liveCats || []).map(c => c.id));
+        // 3) 클라우드의 gcal_key -> 클라우드 id 맵 (치환용). 이번 catIds에 안 걸린 것도 있으니 gcal_key로 한 번 더 조회
+        const neededKeys = [...new Set(Object.values(localIdToGcalKey))];
+        let gcalKeyToCloudId = {};
+        if (neededKeys.length) {
+          const { data: byKey } = await window.sb.from('categories').select('id, gcal_key').in('gcal_key', neededKeys);
+          (byKey || []).forEach(c => { gcalKeyToCloudId[c.gcal_key] = c.id; });
+        }
+        rows = rows.map(r => {
+          if (!r.category_id) return r;
+          if (liveIdSet.has(r.category_id)) return r;               // 이미 유효 → 그대로
+          const gk = localIdToGcalKey[r.category_id];               // 구글 카테고리였나?
+          if (gk && gcalKeyToCloudId[gk]) return { ...r, category_id: gcalKeyToCloudId[gk] };  // 클라우드 진짜 id로 치환
+          return { ...r, category_id: null };                       // 그래도 없으면 미분류
+        });
       }
     }
     const { error } = await window.sb.from(table).upsert(rows);
