@@ -902,6 +902,18 @@ const storage = {
     return plan;
   }
 
+  // plan을 실제 로컬 배열에 적용 (fromCloud 반영, deleted 제거)
+  function applyPlan(localArr, plan) {
+    const delSet = new Set(plan.deleted);
+    let result = localArr.filter(x => !delSet.has(x.id));   // 클라우드서 지워진 것 제거
+    const byId = {}; result.forEach(x => byId[x.id] = x);
+    plan.fromCloud.forEach(item => {                        // 클라우드 버전으로 추가/교체
+      if (byId[item.id]) Object.assign(byId[item.id], item);
+      else { result.push(item); byId[item.id] = item; }
+    });
+    return result;
+  }
+
   async function pullFromCloud({ preview = false } = {}) {
     if (!window.currentUser || !window.sb) return;
     try {
@@ -922,7 +934,15 @@ const storage = {
       console.log('  할 일   :', planT);
       console.log('  일정    :', planE);
       if (!preview) {
-        console.log('  ⚠️ 실제 반영 모드는 아직 안 켬');
+        categories = applyPlan(categories, planC);
+        todos = applyPlan(todos, planT);
+        events = applyPlan(events, planE);
+        // 로컬에도 저장하되, 다시 클라우드로 되쏘지 않게 storage.set만 사용
+        storage.set(STORE_CATS, JSON.stringify(categories));
+        storage.set(STORE_TODOS, JSON.stringify(todos));
+        storage.set(STORE_EVENTS, JSON.stringify(events));
+        renderMonth(); renderWeek(); renderTodos(); renderCategories();
+        console.log('  ✅ pull 반영 완료');
       }
     } catch (e) { console.warn('📥 pull 예외:', e); }
   }
@@ -2488,7 +2508,7 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
     if (user) {
       console.log("🔗 메인 앱이 로그인 인식함 · user_id =", user.id);
       updateMigrateUI();   // 로그인하면 이전 버튼 상태 갱신
-      pullFromCloud({ preview: true });   // 미리보기 모드: 콘솔 출력만, 화면 반영 X
+      pullFromCloud();   // 실제 반영: 클라우드 → 로컬 병합 후 화면 갱신
       // 다음 단계: 여기서 클라우드 데이터 내려받기(pull)
     } else {
       console.log("🔗 메인 앱: 로그아웃 상태");
