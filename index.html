@@ -841,6 +841,13 @@ const storage = {
   }
 
   async function pushCategories(rows) {
+    // 중복 제거: 같은 id 또는 같은 gcal_key가 한 요청에 두 번 들어가면 Postgres가 거부함
+    const seenId = new Set(), seenGcal = new Set();
+    rows = rows.filter(r => {
+      if (r.gcal_key) { if (seenGcal.has(r.gcal_key)) return false; seenGcal.add(r.gcal_key); }
+      if (seenId.has(r.id)) return false; seenId.add(r.id);
+      return true;
+    });
     // 직접 만든 카테고리: id로 충돌 판단 (gcal_key 없음)
     const mine = rows.filter(r => !r.gcal_key);
     // 구글 카테고리: gcal_key로 충돌 판단 (id는 기기마다 달라도 같은 캘린더면 합쳐짐)
