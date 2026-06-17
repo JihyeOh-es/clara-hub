@@ -461,13 +461,15 @@
   </div>
 
   <div id="view-sync" class="view" style="display: none;">
-    <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:12px; margin-bottom:1.25rem; background:var(--color-background-primary); border:0.5px solid var(--color-border-tertiary); border-radius:var(--border-radius-md); box-shadow:var(--shadow-sm);">
-      <i class="ti ti-cloud" style="font-size:20px; color:#7F77DD; flex-shrink:0;"></i>
-      <div style="flex:1; min-width:0;">
-        <div style="font-size:14px; font-weight:500;">클라우드 동기화</div>
-        <div style="font-size:11px; color:var(--color-text-tertiary);">로그인하면 기기 간 데이터가 동기화돼요.</div>
+   <div style="display:flex; flex-direction:column; gap:12px; padding:14px; margin-bottom:1.25rem; background:var(--color-background-primary); border:0.5px solid var(--color-border-tertiary); border-radius:var(--border-radius-md); box-shadow:var(--shadow-sm);">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <i class="ti ti-cloud" style="font-size:20px; color:#7F77DD; flex-shrink:0;"></i>
+        <div style="min-width:0;">
+          <div style="font-size:14px; font-weight:500;">클라우드 동기화</div>
+          <div style="font-size:11px; color:var(--color-text-tertiary);">로그인하면 기기 간 데이터가 동기화돼요.</div>
+        </div>
       </div>
-      <div id="sb-auth-slot"></div>
+      <div id="sb-auth-slot" style="display:flex;"></div>
     </div>
     <p style="font-size:13px; color: var(--color-text-secondary); margin: 0 0 1rem; line-height:1.5;">구글 계정을 연결하면 캘린더 일정을 읽기 전용으로 가져옵니다.</p>
     <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom: 1.25rem;">
