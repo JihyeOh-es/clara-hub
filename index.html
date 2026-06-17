@@ -987,6 +987,15 @@ const storage = {
         storage.set(STORE_EVENTS, JSON.stringify(events));
         renderMonth(); renderWeek(); renderTodos(); renderCategories();
         console.log('  ✅ pull 반영 완료');
+        // 신규 유저: 클라우드·로컬 모두 직접 만든 카테고리가 없으면 기본 카테고리 시드
+        const hasOwnCat = categories.some(c => !c.gcalKey);
+        const cloudHasOwnCat = (cRes.data || []).some(r => !r.gcal_key && !r.is_deleted);
+        if (!hasOwnCat && !cloudHasOwnCat) {
+          console.log('  🌱 신규 유저 감지 → 기본 카테고리 시드');
+          DEFAULT_CATS.forEach(dc => categories.push(touch({ id: crypto.randomUUID(), name: dc.name, color: dc.color })));
+          save(STORE_CATS, categories);   // save가 push까지 호출 → 클라우드에도 올라감
+          renderCategories();
+        }
       }
     } catch (e) { console.warn('📥 pull 예외:', e); }
   }
