@@ -922,10 +922,13 @@ const storage = {
   function mergePlan(localArr, cloudRows, fromRow) {
     const localById = {}; localArr.forEach(x => localById[x.id] = x);
     const cloudById = {}; cloudRows.forEach(r => cloudById[r.id] = r);
+    // 구글 카테고리는 id가 기기마다 다르므로 gcal_key로도 매칭 (중복 방지)
+    const localByGcal = {}; localArr.forEach(x => { if (x.gcalKey) localByGcal[x.gcalKey] = x; });
     const plan = { fromCloud: [], deleted: [], localOnly: [], conflictWonByCloud: 0, conflictWonByLocal: 0 };
     cloudRows.forEach(r => {
-      const local = localById[r.id];
-      if (r.is_deleted) { if (local) plan.deleted.push(r.id); return; }
+      // 로컬 매칭: id 우선, 없으면 gcal_key로 (구글 카테고리)
+      const local = localById[r.id] || (r.gcal_key ? localByGcal[r.gcal_key] : null);
+      if (r.is_deleted) { if (local) plan.deleted.push(local.id); return; }
       if (!local) { plan.fromCloud.push(fromRow(r)); return; }
       // 양쪽 다 있음 → LWW
       if (pickNewer(local, r) === 'cloud') { plan.fromCloud.push(fromRow(r)); plan.conflictWonByCloud++; }
@@ -940,9 +943,17 @@ const storage = {
     const delSet = new Set(plan.deleted);
     let result = localArr.filter(x => !delSet.has(x.id));   // 클라우드서 지워진 것 제거
     const byId = {}; result.forEach(x => byId[x.id] = x);
+    const byGcal = {}; result.forEach(x => { if (x.gcalKey) byGcal[x.gcalKey] = x; });
     plan.fromCloud.forEach(item => {                        // 클라우드 버전으로 추가/교체
-      if (byId[item.id]) Object.assign(byId[item.id], item);
-      else { result.push(item); byId[item.id] = item; }
+      const existing = byId[item.id] || (item.gcalKey ? byGcal[item.gcalKey] : null);
+      if (existing) {
+        // 구글 카테고리면 기존 로컬 id 유지 (일정 참조 안 깨지게), 내용만 갱신
+        const keepId = existing.id;
+        Object.assign(existing, item, { id: keepId });
+      } else {
+        result.push(item); byId[item.id] = item;
+        if (item.gcalKey) byGcal[item.gcalKey] = item;
+      }
     });
     return result;
   }
