@@ -2563,7 +2563,7 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
 
   // 로그인 직후: 로컬에 안 올라간 데이터가 있으면 모달로 물어봄 (B안)
   let migratePrompted = false;   // 이번 세션에 이미 물어봤으면 또 안 물어봄
-  async function maybeAskMigrate() {
+  async function () {
     if (migratePrompted) return;
     if (!window.currentUser) return;
     if (storage.get(migrateDoneKey())) return;   // 이미 이전 완료한 계정이면 패스
@@ -2590,8 +2590,11 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
       console.log("🔗 메인 앱이 로그인 인식함 · user_id =", user.id);
       updateMigrateUI();   // 로그인하면 이전 버튼 상태 갱신
       pullFromCloud();   // 실제 반영: 클라우드 → 로컬 병합 후 화면 갱신
-      // 진짜 새 로그인(SIGNED_IN)일 때만 마이그레이션 물어봄. 새로고침 세션 복원(INITIAL_SESSION)은 제외
-      if (authEvent === 'SIGNED_IN') maybeAskMigrate();
+      // 유저가 방금 직접 로그인했을 때만 마이그레이션 물어봄 (새로고침 세션 복원 제외)
+      if (sessionStorage.getItem('justSignedIn')) {
+        sessionStorage.removeItem('justSignedIn');   // 한 번만
+        maybeAskMigrate();
+      }
       // 다음 단계: 여기서 클라우드 데이터 내려받기(pull)
     } else {
       console.log("🔗 메인 앱: 로그아웃 상태");
@@ -2653,6 +2656,7 @@ if ('serviceWorker' in navigator) {
   }
 
   async function signIn() {
+    sessionStorage.setItem('justSignedIn', '1');   // 직접 로그인 신호 (리다이렉트 후에도 유지, 탭 닫으면 사라짐)
     await sb.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: window.location.origin + window.location.pathname }
