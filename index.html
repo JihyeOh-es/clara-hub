@@ -697,10 +697,11 @@ const storage = {
       overlay.onclick = (e) => { if (e.target === overlay) { cleanup(); resolve(); } };
     });
   }
-  function customConfirm(message, okLabel) {
+  function customConfirm(message, okLabel, cancelLabel) {
     return new Promise((resolve) => {
       document.getElementById('confirm-message').textContent = message;
       document.getElementById('confirm-ok').textContent = okLabel || '삭제';
+      document.getElementById('confirm-cancel').textContent = cancelLabel || '취소';
       document.getElementById('confirm-modal-overlay').style.display = 'flex';
 
       const ok = document.getElementById('confirm-ok');
@@ -2571,7 +2572,8 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
     const cnt = todos.length + events.length + categories.filter(c => !c.gcalKey).length;
     const ok = await customConfirm(
       `이 기기에 저장된 일정이 ${cnt}개가 있어요. 클라우드에 함께 올릴까요? (다른 기기에서도 보려면 올려주세요)`,
-      '올리기'
+      '올리기',
+      '나중에'
     );
     if (ok) {
       await runMigration();
@@ -2582,12 +2584,14 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
 
   // ===== Supabase 동기화: 로그인 상태 변화 수신 =====
   window.addEventListener("auth-changed", (e) => {
-    const user = e.detail;
+    const user = e.detail ? e.detail.user : null;
+    const authEvent = e.detail ? e.detail.event : null;
     if (user) {
       console.log("🔗 메인 앱이 로그인 인식함 · user_id =", user.id);
       updateMigrateUI();   // 로그인하면 이전 버튼 상태 갱신
       pullFromCloud();   // 실제 반영: 클라우드 → 로컬 병합 후 화면 갱신
-      maybeAskMigrate();   // 로컬에 안 올라간 데이터 있으면 "함께 올릴까요?" 물어봄
+      // 진짜 새 로그인(SIGNED_IN)일 때만 마이그레이션 물어봄. 새로고침 세션 복원(INITIAL_SESSION)은 제외
+      if (authEvent === 'SIGNED_IN') maybeAskMigrate();
       // 다음 단계: 여기서 클라우드 데이터 내려받기(pull)
     } else {
       console.log("🔗 메인 앱: 로그아웃 상태");
@@ -2656,7 +2660,7 @@ if ('serviceWorker' in navigator) {
   }
   async function signOut() { await sb.auth.signOut(); }
 
-  function render(session) {
+  function render(session, authEvent) {
     window.currentUser = session ? session.user : null;
     if (session) {
       btn.textContent = "로그아웃 (" + session.user.email + ")";
@@ -2666,12 +2670,12 @@ if ('serviceWorker' in navigator) {
       btn.textContent = "구글로 로그인";
       btn.onclick = signIn;
     }
-    // 메인 앱에 "로그인 상태 바뀜" 신호 보내기
-    window.dispatchEvent(new CustomEvent("auth-changed", { detail: window.currentUser }));
+    // 메인 앱에 "로그인 상태 바뀜" 신호 보내기 (authEvent: 'SIGNED_IN'이면 진짜 새 로그인)
+    window.dispatchEvent(new CustomEvent("auth-changed", { detail: { user: window.currentUser, event: authEvent } }));
   }
 
-  sb.auth.getSession().then(({ data }) => render(data.session));
-  sb.auth.onAuthStateChange((_e, session) => render(session));
+  sb.auth.getSession().then(({ data }) => render(data.session, 'initial'));
+  sb.auth.onAuthStateChange((event, session) => render(session, event));
 })();
 </script>
 </body>
