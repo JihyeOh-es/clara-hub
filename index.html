@@ -9,6 +9,7 @@
   <link rel="icon" type="image/png" href="icon-192.png">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Clara's Hub">
 
@@ -2591,10 +2592,14 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
   }
 
   // ===== Supabase 동기화: 로그인 상태 변화 수신 =====
+  let lastPulledUserId = null;   // 같은 유저로 이미 pull 했으면 중복 방지
   window.addEventListener("auth-changed", (e) => {
     const user = e.detail ? e.detail.user : null;
     const authEvent = e.detail ? e.detail.event : null;
     if (user) {
+      // 같은 유저로 이미 처리했으면 중복 pull 방지 (onAuthStateChange가 여러 번 발화함)
+      if (lastPulledUserId === user.id) return;
+      lastPulledUserId = user.id;
       console.log("🔗 메인 앱이 로그인 인식함 · user_id =", user.id);
       updateMigrateUI();   // 로그인하면 이전 버튼 상태 갱신
       pullFromCloud();   // 실제 반영: 클라우드 → 로컬 병합 후 화면 갱신
@@ -2609,6 +2614,7 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
       // 다음 단계: 여기서 클라우드 데이터 내려받기(pull)
     } else {
       console.log("🔗 메인 앱: 로그아웃 상태");
+      lastPulledUserId = null;   // 로그아웃 → 다음 로그인 때 다시 pull 하게
       updateMigrateUI();   // 로그아웃하면 버튼 숨김
     }
   });
