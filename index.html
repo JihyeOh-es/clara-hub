@@ -477,13 +477,21 @@
         <div id="migrate-status" style="font-size:11px; color:var(--color-text-tertiary); margin-top:6px; text-align:center;"></div>
       </div>
     </div>
-    <p style="font-size:13px; color: var(--color-text-secondary); margin: 0 0 1rem; line-height:1.5;">구글 계정을 연결하면 캘린더 일정을 읽기 전용으로 가져옵니다.</p>
-    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom: 1.25rem;">
-      <button id="connect-google-btn" class="add-fab"><i class="ti ti-plus"></i><span>구글 계정 연결</span></button>
-      <button id="sync-now-btn" class="today-btn"><i class="ti ti-refresh"></i> 일정 가져오기</button>
+    <div style="display:flex; flex-direction:column; gap:12px; padding:14px; background:var(--color-background-primary); border:0.5px solid var(--color-border-tertiary); border-radius:var(--border-radius-md); box-shadow:var(--shadow-sm);">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <i class="ti ti-calendar-event" style="font-size:20px; color:#7F77DD; flex-shrink:0;"></i>
+        <div style="min-width:0;">
+          <div style="font-size:14px; font-weight:500;">구글 캘린더</div>
+          <div style="font-size:11px; color:var(--color-text-tertiary);">구글 일정을 읽기 전용으로 가져와 표시해요.</div>
+        </div>
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button id="connect-google-btn" class="today-btn" style="justify-content:center;"><i class="ti ti-plus"></i> 계정 추가</button>
+        <button id="sync-now-btn" class="today-btn" style="justify-content:center;"><i class="ti ti-refresh"></i> 일정 새로고침</button>
+      </div>
+      <div id="sync-accounts" style="display:flex; flex-direction:column; gap:12px;"></div>
+      <div id="sync-hidden"></div>
     </div>
-    <div id="sync-accounts" style="display:flex; flex-direction:column; gap:12px;"></div>
-    <div id="sync-hidden" style="margin-top: 12px;"></div>
   </div>
   </div>
   <div id="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 100; align-items: center; justify-content: center; padding: 1rem;">
