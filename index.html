@@ -2560,6 +2560,26 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
   }
   { const b = document.getElementById('migrate-btn'); if (b) b.onclick = runMigration; }
 
+  // 로그인 직후: 로컬에 안 올라간 데이터가 있으면 모달로 물어봄 (B안)
+  let migratePrompted = false;   // 이번 세션에 이미 물어봤으면 또 안 물어봄
+  async function maybeAskMigrate() {
+    if (migratePrompted) return;
+    if (!window.currentUser) return;
+    if (storage.get(migrateDoneKey())) return;   // 이미 이전 완료한 계정이면 패스
+    if (!hasLocalData()) return;                  // 올릴 로컬 데이터 없으면 패스
+    migratePrompted = true;
+    const cnt = todos.length + events.length + categories.filter(c => !c.gcalKey).length;
+    const ok = await customConfirm(
+      `이 기기에 저장된 일정이 ${cnt}개가 있어요. 클라우드에 함께 올릴까요? (다른 기기에서도 보려면 올려주세요)`,
+      '올리기'
+    );
+    if (ok) {
+      await runMigration();
+    } else {
+      updateMigrateUI();   // "나중에" → 카드에 '기존 데이터 올리기' 버튼으로 남김 (B안)
+    }
+  }
+
   // ===== Supabase 동기화: 로그인 상태 변화 수신 =====
   window.addEventListener("auth-changed", (e) => {
     const user = e.detail;
@@ -2567,6 +2587,7 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
       console.log("🔗 메인 앱이 로그인 인식함 · user_id =", user.id);
       updateMigrateUI();   // 로그인하면 이전 버튼 상태 갱신
       pullFromCloud();   // 실제 반영: 클라우드 → 로컬 병합 후 화면 갱신
+      maybeAskMigrate();   // 로컬에 안 올라간 데이터 있으면 "함께 올릴까요?" 물어봄
       // 다음 단계: 여기서 클라우드 데이터 내려받기(pull)
     } else {
       console.log("🔗 메인 앱: 로그아웃 상태");
