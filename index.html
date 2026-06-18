@@ -2536,7 +2536,7 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
       btn.disabled = true;
       btn.innerHTML = '<i class="ti ti-check"></i> 이전 완료됨';
       btn.style.opacity = '0.6';
-      status.textContent = '이 계정의 기존 데이터는 이미 올렸어요.';
+      status.textContent = '로그인 전에 입력한 데이터가 모두 클라우드에 저장되었습니다.';
     } else {
       btn.disabled = false;
       btn.innerHTML = '<i class="ti ti-cloud-upload"></i> 기존 데이터 올리기';
