@@ -865,7 +865,7 @@ const storage = {
     if (mine.length) {
       const { error } = await window.sb.from('categories').upsert(mine);
       if (error) console.error('☁️ push 실패 (categories/mine):', error.message);
-      else console.log('☁️ push 성공 (categories/mine): ' + mine.length + '개');
+      else dlog('☁️ push 성공 (categories/mine): ' + mine.length + '개');
     }
     if (gcal.length) {
       // 부분 인덱스(partial index)는 onConflict로 못 집으니, 직접 있으면 update / 없으면 insert
@@ -880,7 +880,7 @@ const storage = {
       const rowsToUpsert = gcal.map(r => existKeyToId[r.gcal_key] ? { ...r, id: existKeyToId[r.gcal_key] } : r);
       const { error } = await window.sb.from('categories').upsert(rowsToUpsert);
       if (error) console.error('☁️ push 실패 (categories/gcal):', error.message);
-      else console.log('☁️ push 성공 (categories/gcal): ' + rowsToUpsert.length + '개');
+      else dlog('☁️ push 성공 (categories/gcal): ' + rowsToUpsert.length + '개');
     }
   }
 
@@ -914,7 +914,7 @@ const storage = {
     }
     const { error } = await window.sb.from(table).upsert(rows);
     if (error) console.error('☁️ push 실패 (' + table + '):', error.message);
-    else console.log('☁️ push 성공 (' + table + '): ' + rows.length + '개');
+    else dlog('☁️ push 성공 (' + table + '): ' + rows.length + '개');
   }
 
   // ===== Pull (읽기): 클라우드에서 가져와 로컬과 병합 =====
@@ -983,10 +983,10 @@ const storage = {
       const planC = mergePlan(categories, cRes.data, categoryFromRow);
       const planT = mergePlan(todos, tRes.data, todoFromRow);
       const planE = mergePlan(events, eRes.data, eventFromRow);
-      console.log('📥 pull 미리보기 (화면 반영 안 함):');
-      console.log('  카테고리:', planC);
-      console.log('  할 일   :', planT);
-      console.log('  일정    :', planE);
+      dlog('📥 pull 미리보기 (화면 반영 안 함):');
+      dlog('  카테고리:', planC);
+      dlog('  할 일   :', planT);
+      dlog('  일정    :', planE);
       if (!preview) {
         categories = applyPlan(categories, planC);
         todos = applyPlan(todos, planT);
@@ -996,7 +996,7 @@ const storage = {
         storage.set(STORE_TODOS, JSON.stringify(todos));
         storage.set(STORE_EVENTS, JSON.stringify(events));
         renderMonth(); renderWeek(); renderTodos(); renderCategories();
-        console.log('  ✅ pull 반영 완료');
+        dlog('  ✅ pull 반영 완료');
       }
     } catch (e) { console.warn('📥 pull 예외:', e); }
   }
@@ -1011,7 +1011,7 @@ const storage = {
         .update({ is_deleted: true })
         .in('id', list);
       if (error) console.error('🗑️ 삭제 동기화 실패 (' + table + '):', error.message);
-      else console.log('🗑️ 삭제 동기화 (' + table + '): ' + list.length + '개');
+      else dlog('🗑️ 삭제 동기화 (' + table + '): ' + list.length + '개');
     } catch (e) { console.error('🗑️ 삭제 예외:', e); }
   }
 
@@ -1030,6 +1030,8 @@ const storage = {
       console.error('☁️ push 예외:', e);
     }
   }
+  const DEBUG = false;   // true로 바꾸면 동기화 디버그 로그가 콘솔에 다시 보임
+  function dlog(...args) { if (DEBUG) console.log(...args); }
   function uid() { return crypto.randomUUID(); }
   function nowISO() { return new Date().toISOString(); }
   // 항목이 만들어지거나 바뀔 때 수정시각 기록 (LWW 비교용)
@@ -1051,7 +1053,7 @@ const storage = {
     save(STORE_TODOS, todos);
     save(STORE_EVENTS, events);
     storage.set('planner:idsNormalized', '1');
-    console.log('🧹 옛 id 정리 완료 (UUID로 전환)');
+    dlog('🧹 옛 id 정리 완료 (UUID로 전환)');
   }
   const NO_CAT = { id: '', name: '미분류', color: '#B0AEA3' };
   function getCat(id) { if (!id) return NO_CAT; return categories.find(c => c.id === id) || NO_CAT; }
@@ -2559,7 +2561,7 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
       await pushToCloud(STORE_EVENTS);
       storage.set(migrateDoneKey(), '1');   // 이 user_id는 완료 표시
       status.textContent = '✅ 완료! 이제 다른 기기에서도 이 데이터를 볼 수 있어요.';
-      console.log('📦 마이그레이션 완료');
+      dlog('📦 마이그레이션 완료');
       updateMigrateUI();
     } catch (e) {
       console.error('마이그레이션 실패:', e);
@@ -2600,7 +2602,7 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
       // 같은 유저로 이미 처리했으면 중복 pull 방지 (onAuthStateChange가 여러 번 발화함)
       if (lastPulledUserId === user.id) return;
       lastPulledUserId = user.id;
-      console.log("🔗 메인 앱이 로그인 인식함 · user_id =", user.id);
+      dlog("🔗 메인 앱이 로그인 인식함 · user_id =", user.id);
       updateMigrateUI();   // 로그인하면 이전 버튼 상태 갱신
       pullFromCloud();   // 실제 반영: 클라우드 → 로컬 병합 후 화면 갱신
       // 유저가 방금 직접 로그인했을 때만 마이그레이션 물어봄 (새로고침 세션 복원 제외)
@@ -2613,7 +2615,7 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
       }
       // 다음 단계: 여기서 클라우드 데이터 내려받기(pull)
     } else {
-      console.log("🔗 메인 앱: 로그아웃 상태");
+      dlog("🔗 메인 앱: 로그아웃 상태");
       lastPulledUserId = null;   // 로그아웃 → 다음 로그인 때 다시 pull 하게
       updateMigrateUI();   // 로그아웃하면 버튼 숨김
     }
