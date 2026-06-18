@@ -2542,7 +2542,7 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
       btn.innerHTML = '<i class="ti ti-cloud-upload"></i> 기존 데이터 올리기';
       btn.style.opacity = '1';
       const cnt = todos.length + events.length + categories.filter(c => !c.gcalKey).length;
-      status.textContent = `처음 한 번만: 이 기기의 기존 데이터 ${cnt}개를 클라우드로 올립니다.`;
+      status.textContent = `로그인 전에 추가한 데이터 ${cnt}개가 있어요. 다른 기기에서도 보려면 클라우드에 올려주세요.`;
     }
   }
   async function runMigration() {
