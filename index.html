@@ -2593,6 +2593,9 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
       // 유저가 방금 직접 로그인했을 때만 마이그레이션 물어봄 (새로고침 세션 복원 제외)
       if (sessionStorage.getItem('justSignedIn')) {
         sessionStorage.removeItem('justSignedIn');   // 한 번만
+        // 로그인하고 돌아왔으니 동기화 탭을 열어줌 (모달이 그 위에 뜨게)
+        const syncTab = document.querySelector('.nav-tab[data-view="sync"]');
+        if (syncTab) syncTab.click();
         maybeAskMigrate();
       }
       // 다음 단계: 여기서 클라우드 데이터 내려받기(pull)
