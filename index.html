@@ -2460,6 +2460,20 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
       if (hasList && acctExpanded[a.email]) {
         const listWrap = document.createElement('div');
         listWrap.style.cssText = 'display:flex; flex-direction:column; gap:4px; margin-top:10px;';
+
+        // 전체 선택 / 전체 해제 토글
+        const allSelected = a.calendars.every(c => c.selected);
+        const selectAllBtn = document.createElement('button');
+        selectAllBtn.style.cssText = 'align-self:flex-start; font-size:12px; padding:4px 10px; margin-bottom:4px; color:var(--color-text-secondary); display:flex; align-items:center; gap:4px;';
+        selectAllBtn.innerHTML = `<i class="ti ti-${allSelected ? 'square-off' : 'checkbox'}" style="font-size:14px;"></i> ${allSelected ? '전체 해제' : '전체 선택'}`;
+        selectAllBtn.onclick = (e) => {
+          e.stopPropagation();
+          const newState = !allSelected;
+          a.calendars.forEach(c => { c.selected = newState; });
+          save(STORE_GACCOUNTS, gAccounts);
+          renderSync();
+        };
+        listWrap.appendChild(selectAllBtn);
         a.calendars.forEach(c => {
           const label = document.createElement('label');
           label.style.cssText = 'display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:6px; cursor:pointer; font-size:13px;';
