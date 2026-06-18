@@ -2688,7 +2688,6 @@ if ('serviceWorker' in navigator) {
     if (session) {
       btn.textContent = "로그아웃 (" + session.user.email + ")";
       btn.onclick = signOut;
-      console.log("✅ 로그인됨 · user_id =", session.user.id);
     } else {
       btn.textContent = "구글로 로그인";
       btn.onclick = signIn;
