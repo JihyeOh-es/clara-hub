@@ -1289,6 +1289,7 @@ const storage = {
       if (tab.dataset.view === 'week') renderWeek();
       if (tab.dataset.view === 'week') renderWeek();
       updateTodayBtn();
+      updateInkButton();
     };
   });
 
@@ -2538,10 +2539,82 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
 
   loadAll();
   normalizeLocalIds();   // 옛 id를 UUID로 정리 (로컬만, 1회)
+
+  // ===== 애플펜슬 필기 (1단계: 그리기 + 모드 토글, 화면 앵커) =====
+  const inkCanvas = document.getElementById('ink-canvas');
+  const inkToggle = document.getElementById('ink-toggle');
+  const inkCtx = inkCanvas.getContext('2d');
+  let inkMode = false;        // 필기 모드 ON/OFF
+  let inkDrawing = false;     // 지금 긋는 중인지
+  let inkLast = null;         // 직전 좌표
+
+  // 캔버스 크기를 화면에 맞춤 (레티나 대응)
+  function resizeInkCanvas() {
+    const dpr = window.devicePixelRatio || 1;
+    inkCanvas.width = window.innerWidth * dpr;
+    inkCanvas.height = window.innerHeight * dpr;
+    inkCanvas.style.width = window.innerWidth + 'px';
+    inkCanvas.style.height = window.innerHeight + 'px';
+    inkCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    inkCtx.lineCap = 'round';
+    inkCtx.lineJoin = 'round';
+    inkCtx.strokeStyle = '#5D54C2';
+    inkCtx.lineWidth = 2.5;
+  }
+  window.addEventListener('resize', resizeInkCanvas);
+
+  // 월/주 뷰일 때만 펜 버튼 보이기
+  function updateInkButton() {
+    const view = document.querySelector('.nav-tab.active')?.dataset.view;
+    const show = (view === 'month' || view === 'week');
+    inkToggle.style.display = show ? 'flex' : 'none';
+    if (!show) setInkMode(false);   // 다른 탭 가면 필기 모드 끔
+  }
+
+  function setInkMode(on) {
+    inkMode = on;
+    if (on) {
+      resizeInkCanvas();
+      inkCanvas.style.display = 'block';
+      inkCanvas.style.pointerEvents = 'auto';   // 펜 입력 받기
+      inkToggle.querySelector('i').style.color = '#fff';
+      inkToggle.style.background = '#7F77DD';
+    } else {
+      inkCanvas.style.pointerEvents = 'none';
+      inkToggle.querySelector('i').style.color = '#7F77DD';
+      inkToggle.style.background = 'var(--color-background-primary)';
+    }
+  }
+
+  inkToggle.onclick = () => setInkMode(!inkMode);
+
+  // 펜으로만 그림. 손가락은 무시(스크롤 통과)
+  inkCanvas.addEventListener('pointerdown', (e) => {
+    if (!inkMode || e.pointerType !== 'pen') return;
+    inkDrawing = true;
+    inkLast = { x: e.clientX, y: e.clientY };
+  });
+  inkCanvas.addEventListener('pointermove', (e) => {
+    if (!inkDrawing || e.pointerType !== 'pen') return;
+    const x = e.clientX, y = e.clientY;
+    inkCtx.beginPath();
+    inkCtx.moveTo(inkLast.x, inkLast.y);
+    inkCtx.lineTo(x, y);
+    inkCtx.stroke();
+    inkLast = { x, y };
+  });
+  function inkEnd(e) {
+    if (e.pointerType !== 'pen') return;
+    inkDrawing = false;
+    inkLast = null;
+  }
+  inkCanvas.addEventListener('pointerup', inkEnd);
+  inkCanvas.addEventListener('pointercancel', inkEnd);
   newTodoCatPicker = createCatPicker(document.getElementById('new-todo-cat-wrap'), { allowNone: true });
   editTodoCatPicker = createCatPicker(document.getElementById('td-cat-wrap'), { allowNone: true });
   renderMonth();
   updateTodayBtn();
+  updateInkButton();
 
   // ===== 기존 데이터 이전 (마이그레이션): 로컬 전체를 클라우드에 1회 업로드 =====
   function migrateDoneKey() {
