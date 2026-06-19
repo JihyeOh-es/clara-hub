@@ -2584,6 +2584,59 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
   }
   { const b = document.getElementById('migrate-btn'); if (b) b.onclick = runMigration; }
 
+  // ===== .ics 내보내기: 직접 만든 일정(events)을 캘린더 파일로 다운로드 =====
+  function icsEscape(str) {
+    return String(str || '').replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
+  }
+  function icsDateTime(dateStr, timeStr) {
+    // dateStr: '2026-06-20', timeStr: '14:00' → '20260620T140000'
+    const d = dateStr.replace(/-/g, '');
+    const t = (timeStr || '00:00').replace(/:/g, '') + '00';
+    return d + 'T' + t;
+  }
+  function buildICS() {
+    const lines = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Clara Hub//KR',
+      'CALSCALE:GREGORIAN'
+    ];
+    const stamp = nowISO().replace(/[-:]/g, '').replace(/\.\d+Z$/, 'Z');
+    events.forEach(e => {
+      lines.push('BEGIN:VEVENT');
+      lines.push('UID:' + e.id + '@clara-hub');
+      lines.push('DTSTAMP:' + stamp);
+      if (e.start) {
+        // 시간 있는 일정 (한국 시간)
+        lines.push('DTSTART;TZID=Asia/Seoul:' + icsDateTime(e.date, e.start));
+        lines.push('DTEND;TZID=Asia/Seoul:' + icsDateTime(e.date, e.end || e.start));
+      } else {
+        // 종일 일정 (날짜만)
+        lines.push('DTSTART;VALUE=DATE:' + e.date.replace(/-/g, ''));
+      }
+      lines.push('SUMMARY:' + icsEscape(e.title));
+      if (e.place) lines.push('LOCATION:' + icsEscape(e.place));
+      if (e.memo) lines.push('DESCRIPTION:' + icsEscape(e.memo));
+      lines.push('END:VEVENT');
+    });
+    lines.push('END:VCALENDAR');
+    return lines.join('\r\n');   // .ics는 CRLF 줄바꿈 표준
+  }
+  function exportICS() {
+    if (events.length === 0) { customAlert('내보낼 일정이 없어요.'); return; }
+    const ics = buildICS();
+    const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const today = fmtDate(new Date());
+    a.href = url;
+    a.download = `clara-hub-${today}.ics`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   // 신규 유저에게만 기본 카테고리 1회 시드 (클라우드 seeded 플래그로 판단 → 부활 안 함)
   const SEED_CATS = [
     { name: '업무', color: '#378ADD' },
