@@ -2549,9 +2549,21 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
     const btn = document.getElementById('migrate-btn');
     const status = document.getElementById('migrate-status');
     if (!row) return;
-    // 로그인 안 했거나, 올릴 로컬 데이터가 없으면 숨김 (신규 유저는 안 보임)
-    if (!window.currentUser || !hasLocalData()) { row.style.display = 'none'; return; }
+    // 올릴 로컬 데이터가 아예 없으면 숨김 (신규 유저)
+    if (!hasLocalData()) { row.style.display = 'none'; return; }
     row.style.display = 'block';
+    const cnt = todos.length + events.length + categories.filter(c => !c.gcalKey).length;
+
+    // 로그아웃 상태: 데이터는 있는데 동기화가 안 되고 있음 → 로그인 유도
+    if (!window.currentUser) {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="ti ti-cloud-upload"></i> 로그인하고 백업하기';
+      btn.style.opacity = '1';
+      status.innerHTML = `⚠️ 로그인하지 않아 이 기기에만 저장되고 있어요.<br>로그인하면 데이터 ${cnt}개를 클라우드에 올릴 수 있어요.`;
+      return;
+    }
+
+    // 로그인 상태
     const done = !!storage.get(migrateDoneKey());
     if (done) {
       btn.disabled = true;
@@ -2562,7 +2574,6 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
       btn.disabled = false;
       btn.innerHTML = '<i class="ti ti-cloud-upload"></i> 기존 데이터 올리기';
       btn.style.opacity = '1';
-      const cnt = todos.length + events.length + categories.filter(c => !c.gcalKey).length;
       status.innerHTML = `로그인 전에 추가한 데이터 ${cnt}개가 있어요.<br>다른 기기에서도 보려면 최초에 1번만 클라우드에 올려주세요.`;
     }
   }
