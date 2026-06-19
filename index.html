@@ -477,6 +477,12 @@
         </button>
         <div id="migrate-status" style="font-size:11px; color:var(--color-text-tertiary); margin-top:6px; text-align:center;"></div>
       </div>
+      <div style="border-top:0.5px solid var(--color-border-tertiary); padding-top:12px;">
+        <button id="export-ics-btn" class="today-btn" style="width:100%; justify-content:center;">
+          <i class="ti ti-download"></i> 일정 백업 (.ics 내보내기)
+        </button>
+        <div style="font-size:11px; color:var(--color-text-tertiary); margin-top:6px; text-align:center;">직접 만든 일정을 파일로 저장해요. 아이폰 캘린더로도 가져갈 수 있어요.</div>
+      </div>
     </div>
     <div style="display:flex; flex-direction:column; gap:12px; padding:14px; background:var(--color-background-primary); border:0.5px solid var(--color-border-tertiary); border-radius:var(--border-radius-md); box-shadow:var(--shadow-sm);">
       <div style="display:flex; align-items:center; gap:10px;">
@@ -2583,6 +2589,7 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
     }
   }
   { const b = document.getElementById('migrate-btn'); if (b) b.onclick = runMigration; }
+  { const b = document.getElementById('export-ics-btn'); if (b) b.onclick = exportICS; }
 
   // ===== .ics 내보내기: 직접 만든 일정(events)을 캘린더 파일로 다운로드 =====
   function icsEscape(str) {
