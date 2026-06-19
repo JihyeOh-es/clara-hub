@@ -481,7 +481,7 @@
         <button id="export-ics-btn" class="today-btn" style="width:100%; justify-content:center;">
           <i class="ti ti-download"></i> 일정 백업 (.ics 내보내기)
         </button>
-        <div style="font-size:11px; color:var(--color-text-tertiary); margin-top:6px; text-align:center;">직접 만든 일정을 파일로 저장해요. 아이폰 캘린더로도 가져갈 수 있어요.</div>
+        <div style="font-size:11px; color:var(--color-text-tertiary); margin-top:6px; text-align:center;">플래너에서 편집한 일정을 파일로 저장할 수 있습니다.</div>
       </div>
     </div>
     <div style="display:flex; flex-direction:column; gap:12px; padding:14px; background:var(--color-background-primary); border:0.5px solid var(--color-border-tertiary); border-radius:var(--border-radius-md); box-shadow:var(--shadow-sm);">
@@ -2557,7 +2557,7 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
     // 로그아웃 상태: 데이터는 있는데 동기화가 안 되고 있음 → 로그인 유도
     if (!window.currentUser) {
       btn.disabled = false;
-      btn.innerHTML = '<i class="ti ti-cloud-upload"></i> 로그인하고 백업하기';
+      btn.innerHTML = '<i class="ti ti-cloud-upload"></i> 백업하기';
       btn.style.opacity = '1';
       status.innerHTML = `⚠️ 로그인하지 않아 이 기기에만 저장되고 있어요.<br>로그인하면 데이터 ${cnt}개를 클라우드에 올릴 수 있어요.`;
       return;
@@ -2578,7 +2578,7 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
     }
   }
   async function runMigration() {
-    if (!window.currentUser || !window.sb) { customAlert('먼저 로그인해주세요.'); return; }
+    if (!window.currentUser || !window.sb) { customAlert('먼저 "구글로 로그인"을 눌러 로그인해주세요.'); return; }
     const btn = document.getElementById('migrate-btn');
     const status = document.getElementById('migrate-status');
     btn.disabled = true;
