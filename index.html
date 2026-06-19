@@ -2584,6 +2584,29 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
   }
   { const b = document.getElementById('migrate-btn'); if (b) b.onclick = runMigration; }
 
+  // 신규 유저에게만 기본 카테고리 1회 시드 (클라우드 seeded 플래그로 판단 → 부활 안 함)
+  const SEED_CATS = [
+    { name: '업무', color: '#378ADD' },
+    { name: '약속', color: '#D4537E' }
+  ];
+  async function seedIfNewUser() {
+    if (!window.currentUser || !window.sb) return;
+    try {
+      // 클라우드에서 내 설정 조회
+      const { data, error } = await window.sb
+        .from('user_settings').select('seeded').eq('user_id', window.currentUser.id).maybeSingle();
+      if (error) { dlog('🌱 seed 확인 실패:', error.message); return; }
+      if (data && data.seeded) return;   // 이미 시드 받음 → 끝 (재로그인/데이터지움 다 해당)
+      // 진짜 신규 유저 → 기본 카테고리 심기
+      dlog('🌱 신규 유저 → 기본 카테고리 시드');
+      SEED_CATS.forEach(sc => categories.push(touch({ id: crypto.randomUUID(), name: sc.name, color: sc.color })));
+      save(STORE_CATS, categories);   // 로컬 저장 + 클라우드 push
+      renderCategories();
+      // seeded=true 기록 (다시는 안 심게)
+      await window.sb.from('user_settings').upsert({ user_id: window.currentUser.id, seeded: true });
+    } catch (e) { dlog('🌱 seed 예외:', e); }
+  }
+
   // 로그인 직후: 로컬에 안 올라간 데이터가 있으면 모달로 물어봄 (B안)
   let migratePrompted = false;   // 이번 세션에 이미 물어봤으면 또 안 물어봄
   async function maybeAskMigrate() {
@@ -2616,7 +2639,7 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
       lastPulledUserId = user.id;
       dlog("🔗 메인 앱이 로그인 인식함 · user_id =", user.id);
       updateMigrateUI();   // 로그인하면 이전 버튼 상태 갱신
-      pullFromCloud();   // 실제 반영: 클라우드 → 로컬 병합 후 화면 갱신
+      pullFromCloud().then(() => seedIfNewUser());   // pull 끝난 뒤 신규 유저면 기본 카테고리 시드
       // 유저가 방금 직접 로그인했을 때만 마이그레이션 물어봄 (새로고침 세션 복원 제외)
       if (sessionStorage.getItem('justSignedIn')) {
         sessionStorage.removeItem('justSignedIn');   // 한 번만
