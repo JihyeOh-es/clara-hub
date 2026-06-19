@@ -3,7 +3,7 @@
 > 단일 `index.html` PWA 플래너 · GitHub Pages 배포 (`jihyeoh-es.github.io/clara-hub`)
 > 월/주 캘린더 + 할 일 + 카테고리(태그) · 구글 캘린더 읽기전용 연동 · Supabase 클라우드 동기화
 > 디자인 토큰: 배경 `#F5F4ED`, 포인트 보라 `#7F77DD`/`#5D54C2`, Tabler 아이콘, 한국어 UI
-> 최종 업데이트: 2026-06-18
+> 최종 업데이트: 2026-06-19
 
 ---
 
@@ -111,19 +111,50 @@
 - [x] `onAuthStateChange` 중복 발화 정리 — `lastPulledUserId` 가드로 pull 1회만 (로그아웃 시 해제)
 - [x] 콘솔 로그 정리 — `DEBUG` 플래그 + `dlog()` 헬퍼로 동기화 로그 감쌈 (DEBUG=true면 복원), 로그인 로그는 제거. error/warn은 유지
 
+### 🔌 12. 구글 연동 해제 개선 (2026-06-19)
+- [x] 휴지통 = 연동 해제로 — 확인 모달 + 그 계정 일정(`g_<email>_`) 즉시 화면에서 제거 ("일정 새로고침" 없이 바로 사라짐)
+
+### 🌱 13. 카테고리 시드 재설계 (2026-06-19) — 부활 불가 구조
+- [x] Supabase `user_settings` 테이블 생성 (user_id PK, seeded boolean, RLS 4정책)
+- [x] Clara 계정 미리 seeded=true 처리 (기존 유저 보호 — 업무·약속 안 심김)
+- [x] `seedIfNewUser()` — 클라우드 seeded 플래그로 판단(비어있음 X), 신규면 "업무/약속" 심고 seeded=true 기록
+- [x] `pullFromCloud().then(seedIfNewUser)` 연결, 기존 유저 보호 확인됨
+- [ ] **실유저(다른 사람) 신규 가입 테스트 대기** — 업무·약속 뜨는지 + 지우면 안 돌아오는지
+
+### 📤 14. 마이그레이션 UI 개선 (2026-06-19)
+- [x] 로그아웃인데 로컬 데이터 있으면 → "⚠️ 이 기기에만 저장 중" 경고 + "백업하기" 버튼 (로그인 풀린 줄 모르고 쓰는 상황 인지)
+- [x] 조건을 "로그인"에서 "로컬 데이터 있음"으로 변경 (`!hasLocalData()`일 때만 숨김)
+
+### 🗓️ 15. .ics 내보내기 (2026-06-19) — 완성
+- [x] `buildICS()` — events만 VEVENT로 (구글 일정 제외), 시간있음 `TZID=Asia/Seoul` / 종일 `VALUE=DATE`
+- [x] `icsEscape` 특수문자 처리, CRLF 줄바꿈, Blob 다운로드 `clara-hub-<날짜>.ics`
+- [x] 동기화 탭 클라우드 카드에 "일정 백업 (.ics 내보내기)" 버튼
+- [x] 검증: 파일 생성 정상, 아이폰 에어드롭으로 캘린더 추가됨 (메일/에어드롭은 OK, 카톡 다운로드는 인식 안 됨)
+- [ ] (참고) .ics는 스냅샷 밀어넣기 — 자동 동기화 아님, 비상백업/이전 용도
+
+### ✍️ 16. 애플펜슬 자유필기 (2026-06-19~) — 1단계 진행 중
+- [x] 투명 캔버스(`ink-canvas`) + 우하단 펜 토글 FAB, 월/주 뷰에서만 활성화
+- [x] 펜/손가락 구분(`pointerType==='pen'`), 손가락은 스크롤 통과, 탭 전환 시 자동 OFF
+- [x] coalesced events + 곡선 보간(quadraticCurveTo)으로 부드럽게
+- [x] `setPointerCapture` + 시작점 점 찍기
+- [ ] **펜 반응성 마저** (다음주): 뗐다 다시 그을 때 버벅임/더블클릭처럼 잡히는 현상 → user-select 차단 + preventDefault + touchstart{passive:false} 코드 받아둠, 미적용
+- [ ] 2단계: 저장/복원 (localStorage → Supabase)
+- [ ] 3단계: 지우개/색/굵기
+- [ ] 방법 B: 날짜셀 앵커 (좌표 정규화)
+
 ---
 
 ## ⬜ 할 일
 
+### 지금 진행 중 (다음주 이어서)
+- [ ] 애플펜슬 1단계 마무리 — 펜 반응성 (받아둔 preventDefault/user-select/touchstart 코드 적용 + v15 배포)
+- [ ] 카테고리 시드 — 실유저 신규 가입 테스트
+
 ### 멀티유저 대비 (구조)
-- [ ] 기본 카테고리 시드 재설계 — 신규 유저엔 기본 카테고리 주되 **부활 안 하는 방식**으로 (가입 1회만, 플래그 잠금)
-- [ ] 신규 가입 / 온보딩 플로우
+- [ ] 신규 가입 / 온보딩 플로우 (맨 마지막에 하기로)
 
 ### 기능 추가
-- [ ] .ics 내보내기 (events → .ics, 비상백업 + 아이폰 캘린더 연동)
-- [ ] 애플펜슬 자유필기 (아이패드, pointerType='pen', 좌표 JSON을 Supabase 저장)
-  - [ ] 방법 A — 화면 앵커 (쉬움, 먼저)
-  - [ ] 방법 B — 날짜셀 앵커 (좌표 정규화, 나중)
+- [ ] 애플펜슬 2단계+ (저장/복원 → 지우개·색·굵기 → 방법 B 날짜 앵커)
 
 ### 더 먼 미래
 - [ ] 본격 멀티유저 런칭 (OAuth 테스트모드 → production 전환, 구글 검증 심사)
@@ -138,6 +169,9 @@
 - 코드 수정은 Ctrl+F before/after 스니펫 방식, 전체 덤프 X
 - 구글 OAuth 두 흐름 분리: GIS 토큰(캘린더 읽기) vs Supabase Auth(로그인/RLS) — 섞지 말 것
 - Supabase 세션은 새로고침에도 SIGNED_IN으로 올 수 있음 → "진짜 로그인"은 sessionStorage 플래그로 구분
+- 신규 유저 판단은 "데이터 비어있음"이 아니라 **클라우드 seeded 플래그**로 (비어있음=신규로 보면 부활 버그 재발)
+- .ics는 받는 경로 따라 다름: 에어드롭/메일=캘린더 인식 OK(추가됨), 카톡 다운로드=인식 안 됨. 본질은 스냅샷 밀어넣기(자동 동기화 X)
+- 애플펜슬: `pointerType==='pen'`으로 펜만, coalesced events + 곡선 보간 + setPointerCapture로 부드럽게. 뗐다 그을 때 버벅임은 preventDefault/user-select 차단으로
 - iCloud 공유 캘린더는 구글과 자동 동기화 불가 → 구글 다리 경유
 - 양쪽 기기 모두 오프라인이면 데이터 못 건너감 (클라우드 거쳐야 함) — 구조적 한계
 - Clara user_id: `265f1a9c-99f4-47cb-8dbe-50beb854ac1d`
