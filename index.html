@@ -607,7 +607,7 @@
         <div>
           <label style="font-size: 12px; color: var(--color-text-secondary); display: block; margin-bottom: 4px;">색상</label>
           <div style="display: flex; align-items: center; gap: 10px;">
-            <label class="cat-swatch" id="cat-edit-swatch-label" for="cat-edit-color" style="width: 32px; height: 32px; cursor:pointer;">`
+            <label class="cat-swatch" id="cat-edit-swatch-label" for="cat-edit-color" style="width: 32px; height: 32px; cursor:pointer;">
               <input type="color" id="cat-edit-color" style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;" />
             </label>
             <span id="cat-edit-color-text" style="font-size: 13px; color: var(--color-text-tertiary); font-variant-numeric: tabular-nums;"></span>
@@ -2609,7 +2609,7 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
       inkLast = { x, y };
     }
     inkCtx.stroke();
-  });`
+  });
   function inkEnd(e) {
     if (e.pointerType !== 'pen') return;
     inkDrawing = false;
