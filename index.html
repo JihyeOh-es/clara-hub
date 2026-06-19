@@ -2313,11 +2313,23 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
       renderSync();
     } catch (e) { customAlert('연결 실패: ' + e.message); }
   }
-  function disconnectAccount(email) {
+  async function disconnectAccount(email) {
+    const ok = await customConfirm(
+      `${email} 연동을 해제할까요? 이 계정에서 가져온 일정이 화면에서 사라져요.`,
+      '연동 해제'
+    );
+    if (!ok) return;
+    // 계정 제거
     gAccounts = gAccounts.filter(a => a.email !== email);
     delete gTokens[email];
     save(STORE_GACCOUNTS, gAccounts);
+    // 이 계정에서 가져온 일정도 화면에서 제거 (id가 'g_<email>_...' 형태)
+    const prefix = 'g_' + email + '_';
+    gEvents = gEvents.filter(e => !e.id.startsWith(prefix));
+    save('planner:gcalEvents', gEvents);
     renderSync();
+    renderMonth();
+    renderWeek();
   }
   async function fetchCalendarList(token) {
     const res = await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList', { headers: { Authorization: 'Bearer ' + token } });
