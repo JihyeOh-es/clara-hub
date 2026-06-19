@@ -2591,8 +2591,14 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
   // 펜으로만 그림. 손가락은 무시(스크롤 통과)
   inkCanvas.addEventListener('pointerdown', (e) => {
     if (!inkMode || e.pointerType !== 'pen') return;
+    inkCanvas.setPointerCapture(e.pointerId);   // 이 펜을 꽉 붙잡아 첫 점부터 안 놓침
     inkDrawing = true;
     inkLast = { x: e.clientX, y: e.clientY };
+    // 시작점에 점 하나 — 첫 반응 공백 제거 (탭만 해도 점 찍힘)
+    inkCtx.beginPath();
+    inkCtx.arc(inkLast.x, inkLast.y, inkCtx.lineWidth / 2, 0, Math.PI * 2);
+    inkCtx.fillStyle = inkCtx.strokeStyle;
+    inkCtx.fill();
   });
   inkCanvas.addEventListener('pointermove', (e) => {
     if (!inkDrawing || e.pointerType !== 'pen') return;
