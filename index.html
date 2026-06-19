@@ -2596,13 +2596,20 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
   });
   inkCanvas.addEventListener('pointermove', (e) => {
     if (!inkDrawing || e.pointerType !== 'pen') return;
-    const x = e.clientX, y = e.clientY;
+    // 애플펜슬이 찍은 중간 점들까지 모두 받기 (안 쓰면 점이 띄엄띄엄 → 끊김)
+    const points = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
     inkCtx.beginPath();
     inkCtx.moveTo(inkLast.x, inkLast.y);
-    inkCtx.lineTo(x, y);
+    for (const p of points) {
+      const x = p.clientX, y = p.clientY;
+      // 직전 점과 현재 점의 중간을 제어점으로 한 곡선 → 부드럽게
+      const midX = (inkLast.x + x) / 2;
+      const midY = (inkLast.y + y) / 2;
+      inkCtx.quadraticCurveTo(inkLast.x, inkLast.y, midX, midY);
+      inkLast = { x, y };
+    }
     inkCtx.stroke();
-    inkLast = { x, y };
-  });
+  });`
   function inkEnd(e) {
     if (e.pointerType !== 'pen') return;
     inkDrawing = false;
