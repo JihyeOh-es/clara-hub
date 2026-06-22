@@ -496,7 +496,25 @@
         <button id="connect-google-btn" class="today-btn" style="justify-content:center;"><i class="ti ti-plus"></i> 계정 추가</button>
         <button id="sync-now-btn" class="today-btn" style="justify-content:center;"><i class="ti ti-refresh"></i> 일정 새로고침</button>
       </div>
-      <div id="sync-accounts
+      <div id="sync-accounts" style="display:flex; flex-direction:column; gap:12px;"></div>
+      <div id="sync-hidden"></div>
+    </div>
+
+    <div id="account-manage-card" style="display:none; flex-direction:column; gap:12px; padding:14px; margin-top:1.25rem; background:var(--color-background-primary); border:0.5px solid var(--color-border-tertiary); border-radius:var(--border-radius-md); box-shadow:var(--shadow-sm);">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <i class="ti ti-user-cog" style="font-size:20px; color:#7F77DD; flex-shrink:0;"></i>
+        <div style="min-width:0;">
+          <div style="font-size:14px; font-weight:500;">계정 관리</div>
+          <div style="font-size:11px; color:var(--color-text-tertiary);">계정과 데이터를 관리해요.</div>
+        </div>
+      </div>
+      <div style="border-top:0.5px solid var(--color-border-tertiary); padding-top:12px;">
+        <button id="delete-account-btn" class="today-btn" style="width:100%; justify-content:center; color:var(--color-text-danger);">
+          <i class="ti ti-trash"></i> 회원 탈퇴 (데이터 전체 삭제)
+        </button>
+        <div style="font-size:11px; color:var(--color-text-tertiary); margin-top:6px; text-align:center;">클라우드의 모든 데이터가 영구 삭제됩니다. 되돌릴 수 없어요.</div>
+      </div>
+    </div>
   </div>
   <!-- 애플펜슬 필기 캔버스 (월/주 뷰에서만 활성화) -->
   <canvas id="ink-canvas" style="display:none; position:fixed; inset:0; z-index:80; touch-action:none; pointer-events:none;"></canvas>
