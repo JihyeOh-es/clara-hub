@@ -371,7 +371,7 @@
       <button id="today-btn-top" class="today-btn" title="오늘로 이동" style="opacity:0.5;">오늘</button>
     </nav>
     
-    <button class="nav-tab" data-view="sync" title="설정" style="flex-shrink:0;"><i class="ti ti-settings" aria-hidden="true"></i></button>`
+    <button class="nav-tab" data-view="sync" title="설정" style="flex-shrink:0;"><i class="ti ti-settings" aria-hidden="true"></i></button>
   </div>
 
   <div id="view-month" class="view">
@@ -2534,8 +2534,30 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
       wrap.appendChild(card);
     });
   }
-  { const b = document.getElementById('connect-google-btn'); if (b) b.onclick = connectAccount; }
-  { const b = document.getElementById('sync-now-btn'); if (b) b.onclick = () => syncAllGoogle(b); }
+  { const b = document.getElementById('migrate-btn'); if (b) b.onclick = runMigration; }
+  { const b = document.getElementById('export-ics-btn'); if (b) b.onclick = exportICS; }
+
+  // 로그아웃: 데이터 지우기/남기기 선택 모달 → 실제 로그아웃은 Supabase 스크립트에 위임
+  async function handleLogout() {
+    const wipe = await customConfirm(
+      '로그아웃할까요?\n\n이 기기에 저장된 데이터를 지우면 화면이 깨끗해져요. (클라우드에는 그대로 있어서 다시 로그인하면 돌아와요)\n\n남겨두면 로그아웃해도 이 기기에 데이터가 보여요.',
+      '데이터 지우기',
+      '데이터 남기기'
+    );
+    // 모달 결과: true=지우기, false=남기기. 둘 다 로그아웃은 진행.
+    if (wipe) {
+      // 로컬 데이터 비우기 (클라우드는 그대로)
+      events = []; todos = []; categories = [];
+      storage.set(STORE_EVENTS, JSON.stringify(events));
+      storage.set(STORE_TODOS, JSON.stringify(todos));
+      storage.set(STORE_CATS, JSON.stringify(categories));
+      // 구글 가져온 일정도 정리
+      gEvents = []; storage.set('planner:gcalEvents', JSON.stringify(gEvents));
+      renderMonth(); renderWeek(); renderTodos(); renderCategories();
+    }
+    window.dispatchEvent(new CustomEvent('do-signout'));   // 실제 로그아웃 요청
+  }
+  window.handleLogout = handleLogout;   // Supabase 스크립트에서 호출용
 
   loadAll();
   normalizeLocalIds();   // 옛 id를 UUID로 정리 (로컬만, 1회)
@@ -2881,12 +2903,14 @@ if ('serviceWorker' in navigator) {
     });
   }
   async function signOut() { await sb.auth.signOut(); }
+  // 메인 앱이 "로그아웃 처리 끝났으니 실제로 로그아웃해줘" 신호를 보내면 실행
+  window.addEventListener('do-signout', () => { signOut(); });
 
   function render(session, authEvent) {
     window.currentUser = session ? session.user : null;
     if (session) {
       btn.textContent = "로그아웃 (" + session.user.email + ")";
-      btn.onclick = signOut;
+      btn.onclick = () => { if (window.handleLogout) window.handleLogout(); else signOut(); };
     } else {
       btn.textContent = "구글로 로그인";
       btn.onclick = signIn;
