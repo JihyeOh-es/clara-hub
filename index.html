@@ -2625,6 +2625,8 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
   let inkMode = false;        // 필기 모드 ON/OFF
   let inkDrawing = false;     // 지금 긋는 중인지
   let inkLast = null;         // 직전 좌표
+  let inkStrokes = [];        // 완성된 획들 (각 획 = 점 배열). undo/전체지우기/저장용
+  let inkCurrent = null;      // 지금 그리는 중인 획
 
   // 캔버스 크기를 화면에 맞춤 (레티나 대응)
   function resizeInkCanvas() {
@@ -2639,7 +2641,30 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
     inkCtx.strokeStyle = '#5D54C2';
     inkCtx.lineWidth = 2.5;
   }
-  window.addEventListener('resize', resizeInkCanvas);
+  window.addEventListener('resize', () => { resizeInkCanvas(); redrawInk(); });
+
+  // 저장된 획들을 전부 다시 그림 (undo/지우기/크기변경 후 호출)
+  function redrawInk() {
+    inkCtx.clearRect(0, 0, inkCanvas.width, inkCanvas.height);
+    for (const stroke of inkStrokes) {
+      if (stroke.length < 1) continue;
+      inkCtx.beginPath();
+      inkCtx.moveTo(stroke[0].x, stroke[0].y);
+      if (stroke.length === 1) {
+        // 점 하나짜리 (탭) → 작은 원
+        inkCtx.arc(stroke[0].x, stroke[0].y, inkCtx.lineWidth / 2, 0, Math.PI * 2);
+        inkCtx.fillStyle = inkCtx.strokeStyle;
+        inkCtx.fill();
+        continue;
+      }
+      for (let i = 1; i < stroke.length; i++) {
+        const midX = (stroke[i-1].x + stroke[i].x) / 2;
+        const midY = (stroke[i-1].y + stroke[i].y) / 2;
+        inkCtx.quadraticCurveTo(stroke[i-1].x, stroke[i-1].y, midX, midY);
+      }
+      inkCtx.stroke();
+    }
+  }
 
   // 월/주 뷰일 때만 펜 버튼 보이기
   function updateInkButton() {
@@ -2676,6 +2701,7 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
     inkCanvas.setPointerCapture(e.pointerId);   // 이 펜을 꽉 붙잡아 첫 점부터 안 놓침
     inkDrawing = true;
     inkLast = { x: e.clientX, y: e.clientY };
+    inkCurrent = [{ x: inkLast.x, y: inkLast.y }];   // 새 획 시작
     // 시작점에 점 하나 — 첫 반응 공백 제거 (탭만 해도 점 찍힘)
     inkCtx.beginPath();
     inkCtx.arc(inkLast.x, inkLast.y, inkCtx.lineWidth / 2, 0, Math.PI * 2);
@@ -2697,6 +2723,7 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
       const midY = (inkLast.y + y) / 2;
       inkCtx.quadraticCurveTo(inkLast.x, inkLast.y, midX, midY);
       inkLast = { x, y };
+      if (inkCurrent) inkCurrent.push({ x, y });   // 점을 현재 획에 기록
     }
     inkCtx.stroke();
   });
@@ -2704,6 +2731,8 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
     if (e.pointerType !== 'pen') return;
     inkDrawing = false;
     inkLast = null;
+    if (inkCurrent && inkCurrent.length) inkStrokes.push(inkCurrent);   // 획 저장
+    inkCurrent = null;
   }
   inkCanvas.addEventListener('pointerup', inkEnd);
   inkCanvas.addEventListener('pointercancel', inkEnd);
