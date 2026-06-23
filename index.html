@@ -2708,7 +2708,7 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
   // 전체 지우기: 확인 후 모든 획 삭제
   inkClear.onclick = async () => {
     if (inkStrokes.length === 0) return;
-    const ok = await customConfirm('필기를 모두 지울까요?', '전체 지우기', '취소');
+    const ok = await customConfirm('메모를 모두 지울까요?', '전체 지우기', '취소');
     if (ok) { inkStrokes = []; redrawInk(); }
   };
   // iOS 사파리 더블탭 확대 등 기본 제스처 차단
@@ -2756,7 +2756,7 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
     inkCurrent = null;
   }
   inkCanvas.addEventListener('pointerup', inkEnd);
-  inkCanvas.addEventListener('pointercancel', inkEnd);
+  inkCanvas.addEventListener('pointercancel', (e) => { console.log('⚠️ pointercancel 발생 (획이 끊김)'); inkEnd(e); });
   newTodoCatPicker = createCatPicker(document.getElementById('new-todo-cat-wrap'), { allowNone: true });
   editTodoCatPicker = createCatPicker(document.getElementById('td-cat-wrap'), { allowNone: true });
   renderMonth();
