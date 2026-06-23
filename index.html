@@ -517,7 +517,7 @@
     </div>
   </div>
   <!-- 애플펜슬 필기 캔버스 (월/주 뷰에서만 활성화) -->
-  <canvas id="ink-canvas" style="display:none; position:fixed; inset:0; z-index:80; touch-action:none; pointer-events:none;"></canvas>
+  <canvas id="ink-canvas" style="display:none; position:fixed; inset:0; z-index:80; touch-action:none; pointer-events:none; user-select:none; -webkit-user-select:none; -webkit-touch-callout:none;"></canvas>
   <!-- 필기 모드 토글 버튼 -->
   <button id="ink-toggle" style="display:none; position:fixed; right:16px; bottom:24px; z-index:90; width:52px; height:52px; border-radius:50%; background:var(--color-background-primary); border:0.5px solid var(--color-border-tertiary); box-shadow:var(--shadow-xl); cursor:pointer; align-items:center; justify-content:center; padding:0;">
     <i class="ti ti-pencil" style="font-size:22px; color:#7F77DD;"></i>
@@ -2665,10 +2665,14 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
   }
 
   inkToggle.onclick = () => setInkMode(!inkMode);
+  // iOS 사파리 더블탭 확대 등 기본 제스처 차단
+  inkCanvas.addEventListener('dblclick', (e) => e.preventDefault());
+  inkCanvas.addEventListener('touchstart', (e) => { if (inkMode) e.preventDefault(); }, { passive: false });
 
   // 펜으로만 그림. 손가락은 무시(스크롤 통과)
   inkCanvas.addEventListener('pointerdown', (e) => {
     if (!inkMode || e.pointerType !== 'pen') return;
+    e.preventDefault();
     inkCanvas.setPointerCapture(e.pointerId);   // 이 펜을 꽉 붙잡아 첫 점부터 안 놓침
     inkDrawing = true;
     inkLast = { x: e.clientX, y: e.clientY };
@@ -2680,6 +2684,7 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
   });
   inkCanvas.addEventListener('pointermove', (e) => {
     if (!inkDrawing || e.pointerType !== 'pen') return;
+    e.preventDefault();
     // 애플펜슬이 찍은 중간 점들까지 모두 받기 (안 쓰면 점이 띄엄띄엄 → 끊김)
     const points = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
     inkCtx.beginPath();
