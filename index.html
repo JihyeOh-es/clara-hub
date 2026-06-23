@@ -522,6 +522,12 @@
   <button id="ink-toggle" style="display:none; position:fixed; right:16px; bottom:24px; z-index:90; width:52px; height:52px; border-radius:50%; background:var(--color-background-primary); border:0.5px solid var(--color-border-tertiary); box-shadow:var(--shadow-xl); cursor:pointer; align-items:center; justify-content:center; padding:0;">
     <i class="ti ti-pencil" style="font-size:22px; color:#7F77DD;"></i>
   </button>
+  <button id="ink-undo" style="display:none; position:fixed; right:16px; bottom:86px; z-index:90; width:44px; height:44px; border-radius:50%; background:var(--color-background-primary); border:0.5px solid var(--color-border-tertiary); box-shadow:var(--shadow-xl); cursor:pointer; align-items:center; justify-content:center; padding:0;">
+    <i class="ti ti-arrow-back-up" style="font-size:20px; color:var(--color-text-secondary);"></i>
+  </button>
+  <button id="ink-clear" style="display:none; position:fixed; right:16px; bottom:138px; z-index:90; width:44px; height:44px; border-radius:50%; background:var(--color-background-primary); border:0.5px solid var(--color-border-tertiary); box-shadow:var(--shadow-xl); cursor:pointer; align-items:center; justify-content:center; padding:0;">
+    <i class="ti ti-trash" style="font-size:20px; color:var(--color-text-danger);"></i>
+  </button>
 
   <div id="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 100; align-items: center; justify-content: center; padding: 1rem;">
     <div style="background: var(--color-background-primary); border-radius: var(--border-radius-lg); padding: 1.25rem; width: 100%; max-width: 420px; border: 0.5px solid var(--color-border-tertiary); max-height: 90vh; overflow-y: auto;box-shadow: var(--shadow-xl);">
@@ -2621,6 +2627,8 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
   // ===== 애플펜슬 필기 (1단계: 그리기 + 모드 토글, 화면 앵커) =====
   const inkCanvas = document.getElementById('ink-canvas');
   const inkToggle = document.getElementById('ink-toggle');
+  const inkUndo = document.getElementById('ink-undo');
+  const inkClear = document.getElementById('ink-clear');
   const inkCtx = inkCanvas.getContext('2d');
   let inkMode = false;        // 필기 모드 ON/OFF
   let inkDrawing = false;     // 지금 긋는 중인지
@@ -2678,18 +2686,31 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
     inkMode = on;
     if (on) {
       resizeInkCanvas();
+      redrawInk();   // 크기 맞춘 뒤 기존 획 다시 그림
       inkCanvas.style.display = 'block';
       inkCanvas.style.pointerEvents = 'auto';   // 펜 입력 받기
       inkToggle.querySelector('i').style.color = '#fff';
       inkToggle.style.background = '#7F77DD';
+      inkUndo.style.display = 'flex';
+      inkClear.style.display = 'flex';
     } else {
       inkCanvas.style.pointerEvents = 'none';
       inkToggle.querySelector('i').style.color = '#7F77DD';
       inkToggle.style.background = 'var(--color-background-primary)';
+      inkUndo.style.display = 'none';
+      inkClear.style.display = 'none';
     }
   }
 
   inkToggle.onclick = () => setInkMode(!inkMode);
+  // 실행 취소: 마지막 획 빼고 다시 그림
+  inkUndo.onclick = () => { inkStrokes.pop(); redrawInk(); };
+  // 전체 지우기: 확인 후 모든 획 삭제
+  inkClear.onclick = async () => {
+    if (inkStrokes.length === 0) return;
+    const ok = await customConfirm('필기를 모두 지울까요?', '전체 지우기', '취소');
+    if (ok) { inkStrokes = []; redrawInk(); }
+  };
   // iOS 사파리 더블탭 확대 등 기본 제스처 차단
   inkCanvas.addEventListener('dblclick', (e) => e.preventDefault());
   inkCanvas.addEventListener('touchstart', (e) => { if (inkMode) e.preventDefault(); }, { passive: false });
