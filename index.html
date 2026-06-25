@@ -2653,7 +2653,7 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
 
   // 저장된 획들을 전부 다시 그림 (undo/지우기/크기변경 후 호출)
   function redrawInk() {
-    inkCtx.clearRect(0, 0, inkCanvas.width, inkCanvas.height);
+    inkCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
     for (const stroke of inkStrokes) {
       if (stroke.length < 1) continue;
       inkCtx.beginPath();
