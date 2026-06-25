@@ -3,7 +3,7 @@
 > 단일 `index.html` PWA 플래너 · GitHub Pages 배포 (`jihyeoh-es.github.io/clara-hub`)
 > 월/주 캘린더 + 할 일 + 카테고리(태그) · 구글 캘린더 읽기전용 연동 · Supabase 클라우드 동기화
 > 디자인 토큰: 배경 `#F5F4ED`, 포인트 보라 `#7F77DD`/`#5D54C2`, Tabler 아이콘, 한국어 UI
-> 최종 업데이트: 2026-06-22
+> 최종 업데이트: 2026-06-25
 
 ---
 
@@ -132,15 +132,20 @@
 - [x] 검증: 파일 생성 정상, 아이폰 에어드롭으로 캘린더 추가됨 (메일/에어드롭은 OK, 카톡 다운로드는 인식 안 됨)
 - [ ] (참고) .ics는 스냅샷 밀어넣기 — 자동 동기화 아님, 비상백업/이전 용도
 
-### ✍️ 16. 애플펜슬 자유필기 (2026-06-19~) — 1단계 진행 중
+### ✍️ 16. 애플펜슬 자유필기 (2026-06-19~) — 1단계 완료, 2단계 진행 중
 - [x] 투명 캔버스(`ink-canvas`) + 우하단 펜 토글 FAB, 월/주 뷰에서만 활성화
 - [x] 펜/손가락 구분(`pointerType==='pen'`), 손가락은 스크롤 통과, 탭 전환 시 자동 OFF
 - [x] coalesced events + 곡선 보간(quadraticCurveTo)으로 부드럽게
 - [x] `setPointerCapture` + 시작점 점 찍기
-- [ ] **펜 반응성 마저** (다음주): 뗐다 다시 그을 때 버벅임/더블클릭처럼 잡히는 현상 → user-select 차단 + preventDefault + touchstart{passive:false} 코드 받아둠, 미적용
-- [ ] 2단계: 저장/복원 (localStorage → Supabase)
+- [x] 펜 반응성 (2026-06-25) — `user-select:none` 차단 + pointerdown/move `preventDefault` + `touchstart{passive:false}` + dblclick 차단. 뗐다 그을 때 버벅임/더블탭 오해 해결 (passive:false가 핵심)
+- [x] 선 평활화 — 지수 평활화 `x = inkLast + (raw - inkLast) * 0.35` (자글거림 해결, 0.35가 균형점)
+- [x] undo + 전체 지우기 (2026-06-25) — 획(stroke) 단위 구조로 전환(`inkStrokes` 배열, `redrawInk()`), FAB 위로 ↩/🗑 버튼. cancel이 가끔 획 쪼개는 건 그냥 둠(A안, 드물어서)
+- [x] 2단계-A: localStorage 저장/복원 (2026-06-25) — `saveInk()`/`loadInk()`, `planner:ink` 키. 화면 좌표 그대로(방법 A). 새로고침해도 필기 유지됨
+- [x] 레티나 좌표 버그 — `redrawInk`의 `clearRect`에 물리픽셀(canvas.width) 넣어 2배 어긋나던 것 → `window.innerWidth/Height`(CSS 좌표)로 수정
+- [ ] **펜 모드 꺼도 필기 보이게** (내일): `refreshInkVisibility()` 코드 받아둠, 미적용. 캔버스 항상 display:block + pointerEvents:none(터치 통과)
+- [ ] 2단계-B: Supabase 저장 (기기 간 동기화)
 - [ ] 3단계: 지우개/색/굵기
-- [ ] 방법 B: 날짜셀 앵커 (좌표 정규화)
+- [ ] 방법 B: 날짜셀 앵커 (좌표 정규화) — 지금은 화면 고정이라 월 넘겨도 같은 자리, 다른 기기서 안 맞음. 이거 할 때 화면좌표→날짜앵커 전환
 
 ### ⚙️ 17. 설정 탭 + 계정 관리 (2026-06-22)
 - [x] 설정 탭 신설 — 동기화 탭 아이콘 `ti-cloud`→`ti-settings`, 맨 오른쪽 끝으로. "오늘" 버튼은 nav 안(태그 다음)으로 자리 교환 (`data-view="sync"` id는 유지)
@@ -152,8 +157,8 @@
 
 ## ⬜ 할 일
 
-### 지금 진행 중 (내일 이어서 — 아이패드 지참)
-- [ ] 애플펜슬 1단계 마무리 — 펜 반응성 (받아둔 preventDefault/user-select/touchstart 코드 적용 + v15 배포)
+### 지금 진행 중 (내일 이어서)
+- [ ] 애플펜슬 — "펜 모드 꺼도 필기 보이게" (받아둔 `refreshInkVisibility()` 코드 적용 + 달력 클릭 통과 확인)
 - [ ] 신규 유저 시드 확인 — Clara가 탈퇴해서 신규 상태가 됨. 재로그인 시 업무·약속 뜨는지 + 지우면 안 돌아오는지 직접 검증 가능
 
 ### 멀티유저 대비 (구조)
