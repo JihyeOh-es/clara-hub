@@ -2622,7 +2622,6 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
   { const b = document.getElementById('delete-account-btn'); if (b) b.onclick = handleDeleteAccount; }
 
   loadAll();
-  loadInk();   // 저장된 필기 불러오기
   normalizeLocalIds();   // 옛 id를 UUID로 정리 (로컬만, 1회)
 
   // ===== 애플펜슬 필기 (1단계: 그리기 + 모드 토글, 화면 앵커) =====
@@ -2681,6 +2680,7 @@ document.getElementById('new-todo-due').addEventListener('pointerdown', () => {
   function loadInk() {
     try { const r = storage.get('planner:ink'); inkStrokes = r ? JSON.parse(r.value) : []; } catch(e) { inkStrokes = []; }
   }
+  loadInk();   // 저장된 필기 불러오기 (inkStrokes 선언 후라 안전)
 
   // 월/주 뷰일 때만 펜 버튼 보이기
   function updateInkButton() {
